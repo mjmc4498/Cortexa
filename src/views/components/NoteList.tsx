@@ -86,6 +86,8 @@ export function NoteList() {
         return new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime();
       });
 
+  const [showEmptyConfirm, setShowEmptyConfirm] = useState(false);
+
   return (
     <div className="w-80 flex flex-col bg-[#0a0a0a] h-full border-r border-zinc-800">
       <div className="p-4 space-y-4">
@@ -117,17 +119,35 @@ export function NoteList() {
         )}
 
         {activeFilter === 'trash' && filteredNotes.length > 0 && (
-          <button 
-            onClick={() => {
-              if (confirm('¿Estás seguro de que quieres vaciar la papelera? Esta acción no se puede deshacer.')) {
-                emptyTrash();
-              }
-            }}
-            className="w-full flex items-center justify-center gap-2 py-2 px-4 bg-red-500/10 text-red-500 border border-red-500/20 rounded-xl hover:bg-red-500 hover:text-white transition-all text-xs font-bold"
-          >
-            <Trash2 size={14} />
-            Vaciar Papelera
-          </button>
+          <div className="space-y-2">
+            {!showEmptyConfirm ? (
+              <button 
+                onClick={() => setShowEmptyConfirm(true)}
+                className="w-full flex items-center justify-center gap-2 py-2 px-4 bg-red-500/10 text-red-500 border border-red-500/20 rounded-xl hover:bg-red-500 hover:text-white transition-all text-xs font-bold"
+              >
+                <Trash2 size={14} />
+                Vaciar Papelera
+              </button>
+            ) : (
+              <div className="flex gap-2">
+                <button 
+                  onClick={() => {
+                    emptyTrash();
+                    setShowEmptyConfirm(false);
+                  }}
+                  className="flex-1 py-2 px-4 bg-red-500 text-white rounded-xl hover:bg-red-600 transition-all text-[10px] font-bold"
+                >
+                  Confirmar Borrado
+                </button>
+                <button 
+                  onClick={() => setShowEmptyConfirm(false)}
+                  className="flex-1 py-2 px-4 bg-zinc-800 text-zinc-400 rounded-xl hover:bg-zinc-700 transition-all text-[10px] font-bold"
+                >
+                  Cancelar
+                </button>
+              </div>
+            )}
+          </div>
         )}
 
         {/* Predictive Suggestions */}

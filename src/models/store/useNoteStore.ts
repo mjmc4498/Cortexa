@@ -13,7 +13,8 @@ import {
   setDoc,
   serverTimestamp,
   getDoc,
-  getDocs
+  getDocs,
+  writeBatch
 } from 'firebase/firestore';
 import { db, auth } from '../../firebase';
 import { generateEmbedding, semanticSearch } from '../../controllers/services/aiService';
@@ -183,8 +184,11 @@ export const useNoteStore = create<NoteState>((set, get) => ({
         where('isDeleted', '==', true)
       );
       const snapshot = await getDocs(q);
-      const deletePromises = snapshot.docs.map(d => deleteDoc(d.ref));
-      await Promise.all(deletePromises);
+      if (snapshot.empty) return;
+      
+      const batch = writeBatch(db);
+      snapshot.docs.forEach(d => batch.delete(d.ref));
+      await batch.commit();
     } catch (error) {
       console.error("Error emptying trash:", error);
     }

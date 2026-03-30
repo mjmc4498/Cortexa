@@ -62,6 +62,8 @@ export function NoteEditor() {
   const [newTaskText, setNewTaskText] = useState('');
   const [showRewriteMenu, setShowRewriteMenu] = useState(false);
   const [showTranslateMenu, setShowTranslateMenu] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [showClearTasksConfirm, setShowClearTasksConfirm] = useState(false);
 
   useEffect(() => {
     if (note) {
@@ -331,28 +333,49 @@ export function NoteEditor() {
             </button>
           )}
 
-          <button 
-            onClick={() => {
-              if (note.isDeleted) {
-                if (confirm('¿Estás seguro de que quieres eliminar esta nota permanentemente?')) {
-                  permanentlyDeleteNote(note.id);
-                  setSelectedNoteId(null);
-                }
-              } else {
+          {note.isDeleted ? (
+            <div className="relative">
+              {!showDeleteConfirm ? (
+                <button 
+                  onClick={() => setShowDeleteConfirm(true)}
+                  className="p-2 rounded-xl bg-red-500 text-white hover:bg-red-600 transition-all"
+                  title="Eliminar Permanentemente"
+                >
+                  <Trash2 className="w-5 h-5" />
+                </button>
+              ) : (
+                <div className="absolute right-0 top-full mt-2 flex gap-2 bg-zinc-900 p-2 rounded-xl border border-zinc-800 shadow-2xl z-20 whitespace-nowrap">
+                  <button 
+                    onClick={() => {
+                      permanentlyDeleteNote(note.id);
+                      setSelectedNoteId(null);
+                      setShowDeleteConfirm(false);
+                    }}
+                    className="py-1 px-3 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-all text-[10px] font-bold"
+                  >
+                    Confirmar
+                  </button>
+                  <button 
+                    onClick={() => setShowDeleteConfirm(false)}
+                    className="py-1 px-3 bg-zinc-800 text-zinc-400 rounded-lg hover:bg-zinc-700 transition-all text-[10px] font-bold"
+                  >
+                    X
+                  </button>
+                </div>
+              )}
+            </div>
+          ) : (
+            <button 
+              onClick={() => {
                 deleteNote(note.id);
                 setSelectedNoteId(null);
-              }
-            }}
-            className={cn(
-              "p-2 rounded-xl transition-all",
-              note.isDeleted 
-                ? "bg-red-500 text-white hover:bg-red-600" 
-                : "bg-zinc-900 text-zinc-400 hover:bg-red-500/10 hover:text-red-500"
-            )}
-            title={note.isDeleted ? "Eliminar Permanentemente" : "Mover a la Papelera"}
-          >
-            <Trash2 className="w-5 h-5" />
-          </button>
+              }}
+              className="p-2 rounded-xl bg-zinc-900 text-zinc-400 hover:bg-red-500/10 hover:text-red-500 transition-all"
+              title="Mover a la Papelera"
+            >
+              <Trash2 className="w-5 h-5" />
+            </button>
+          )}
         </div>
       </header>
 
@@ -480,16 +503,34 @@ export function NoteEditor() {
                 Tareas Pendientes
               </h3>
               {note.tasks && note.tasks.length > 0 && (
-                <button 
-                  onClick={() => {
-                    if (confirm('¿Estás seguro de que quieres eliminar todas las tareas?')) {
-                      updateNote(note.id, { tasks: [] });
-                    }
-                  }}
-                  className="text-[10px] text-zinc-600 hover:text-red-500 transition-all uppercase font-bold tracking-widest"
-                >
-                  Limpiar todo
-                </button>
+                <div className="relative">
+                  {!showClearTasksConfirm ? (
+                    <button 
+                      onClick={() => setShowClearTasksConfirm(true)}
+                      className="text-[10px] text-zinc-600 hover:text-red-500 transition-all uppercase font-bold tracking-widest"
+                    >
+                      Limpiar todo
+                    </button>
+                  ) : (
+                    <div className="flex gap-2 items-center">
+                      <button 
+                        onClick={() => {
+                          updateNote(note.id, { tasks: [] });
+                          setShowClearTasksConfirm(false);
+                        }}
+                        className="text-[10px] text-red-500 hover:underline font-bold"
+                      >
+                        Confirmar
+                      </button>
+                      <button 
+                        onClick={() => setShowClearTasksConfirm(false)}
+                        className="text-[10px] text-zinc-500 hover:underline font-bold"
+                      >
+                        X
+                      </button>
+                    </div>
+                  )}
+                </div>
               )}
             </div>
             
