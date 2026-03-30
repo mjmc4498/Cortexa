@@ -20,7 +20,8 @@ import {
   ListTodo,
   Type as TypeIcon,
   Target,
-  Briefcase
+  Briefcase,
+  ChevronLeft
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { useNoteStore, useUserStore } from '../store/useNoteStore';
@@ -129,8 +130,14 @@ export function NoteEditor() {
       className="flex-1 flex flex-col h-full overflow-hidden"
     >
       {/* Toolbar */}
-      <header className="flex items-center justify-between px-8 py-4 border-b border-zinc-800/50 bg-[#0f0f0f]/80 backdrop-blur-md sticky top-0 z-10">
-        <div className="flex items-center space-x-4">
+      <header className="flex items-center justify-between px-4 lg:px-8 py-4 border-b border-zinc-800/50 bg-[#0f0f0f]/80 backdrop-blur-md sticky top-0 z-10">
+        <div className="flex items-center space-x-2 lg:space-x-4">
+          <button 
+            onClick={() => setSelectedNoteId(null)}
+            className="lg:hidden p-2 text-zinc-400 hover:text-white mr-2"
+          >
+            <ChevronLeft size={24} />
+          </button>
           <button 
             onClick={() => updateNote(note.id, { isPinned: !note.isPinned })}
             className={cn(

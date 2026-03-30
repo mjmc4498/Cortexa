@@ -150,7 +150,7 @@ export const GraphView: React.FC<{ onClose: () => void }> = ({ onClose }) => {
       className={`fixed inset-0 z-50 bg-white/90 backdrop-blur-sm flex flex-col ${isFullscreen ? 'p-0' : 'p-8'}`}
     >
       <div className="flex items-center justify-between mb-4 px-4">
-        <h2 className="text-2xl font-serif italic text-slate-800">Mapa del Conocimiento (Second Brain)</h2>
+        <h2 className="text-2xl font-serif italic text-slate-800">Mapa del Conocimiento (Cerebro Digital)</h2>
         <div className="flex items-center gap-2">
           <button 
             onClick={() => setIsFullscreen(!isFullscreen)}

@@ -77,8 +77,8 @@ export const SmartCapture: React.FC<{ onClose: () => void }> = ({ onClose }) => 
               <Upload size={20} />
             </div>
             <div>
-              <h2 className="text-xl font-semibold text-slate-800">Smart Capture</h2>
-              <p className="text-xs text-slate-500">IA-Powered Multimodal Input</p>
+              <h2 className="text-xl font-semibold text-slate-800">Captura Inteligente</h2>
+              <p className="text-xs text-slate-500">Entrada Multimodal con IA</p>
             </div>
           </div>
           <button onClick={onClose} className="p-2 hover:bg-slate-200 rounded-full transition-colors">
@@ -151,7 +151,7 @@ export const SmartCapture: React.FC<{ onClose: () => void }> = ({ onClose }) => 
           <div className="mt-8 grid grid-cols-2 gap-4">
             <div className="p-4 rounded-xl border border-slate-100 bg-slate-50 flex items-center gap-3">
               <Mic size={18} className="text-slate-400" />
-              <span className="text-xs text-slate-600">Speech-to-Text</span>
+              <span className="text-xs text-slate-600">Voz a Texto</span>
             </div>
             <div className="p-4 rounded-xl border border-slate-100 bg-slate-50 flex items-center gap-3">
               <ImageIcon size={18} className="text-slate-400" />
@@ -163,7 +163,7 @@ export const SmartCapture: React.FC<{ onClose: () => void }> = ({ onClose }) => 
             </div>
             <div className="p-4 rounded-xl border border-slate-100 bg-slate-50 flex items-center gap-3">
               <LinkIcon size={18} className="text-slate-400" />
-              <span className="text-xs text-slate-600">Web Clipping (Próximamente)</span>
+              <span className="text-xs text-slate-600">Recorte Web (Próximamente)</span>
             </div>
           </div>
         </div>

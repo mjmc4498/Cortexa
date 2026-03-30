@@ -164,7 +164,7 @@ export const WorkspaceView: React.FC<{ onClose: () => void }> = ({ onClose }) =>
             <div className="flex items-center justify-between mb-6">
               <h3 className="text-sm font-bold uppercase tracking-widest text-zinc-500 flex items-center gap-2">
                 <BrainCircuit size={16} className="text-indigo-400" />
-                AI Insights & Reporte Semanal
+                AI Insights y Reporte Semanal
               </h3>
               <button 
                 onClick={handleGenerateReport}

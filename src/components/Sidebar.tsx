@@ -18,7 +18,8 @@ import {
   Briefcase,
   User as UserIcon,
   BookOpen,
-  Clock
+  Clock,
+  X
 } from 'lucide-react';
 import { motion } from 'motion/react';
 import { useNoteStore, useUserStore } from '../store/useNoteStore';
@@ -32,6 +33,7 @@ interface SidebarProps {
   onOpenSmartCapture: () => void;
   onOpenTimeline: () => void;
   onOpenWorkspace: () => void;
+  onCloseMobile?: () => void;
 }
 
 export function Sidebar({ 
@@ -41,13 +43,15 @@ export function Sidebar({
   onOpenKanban, 
   onOpenSmartCapture,
   onOpenTimeline,
-  onOpenWorkspace
+  onOpenWorkspace,
+  onCloseMobile
 }: SidebarProps) {
   const { addNote, setSelectedNoteId } = useNoteStore();
   const { preferences, updatePreferences } = useUserStore();
 
   const handleNewNote = () => {
     addNote({ title: 'Nueva Nota', content: '' });
+    if (onCloseMobile) onCloseMobile();
   };
 
   const menuItems = [
@@ -66,12 +70,22 @@ export function Sidebar({
   ];
 
   return (
-    <aside className="w-64 flex flex-col bg-[#0a0a0a] border-r border-zinc-800/50 p-4">
-      <div className="flex items-center space-x-3 px-2 mb-8">
-        <div className="w-8 h-8 bg-orange-500 rounded-xl flex items-center justify-center">
-          <Sparkles className="w-5 h-5 text-white" />
+    <aside className="w-64 h-full flex flex-col bg-[#0a0a0a] border-r border-zinc-800/50 p-4 relative">
+      <div className="flex items-center justify-between mb-8 px-2">
+        <div className="flex items-center space-x-3">
+          <div className="w-8 h-8 bg-orange-500 rounded-xl flex items-center justify-center">
+            <Sparkles className="w-5 h-5 text-white" />
+          </div>
+          <span className="text-xl font-bold tracking-tight text-white">Cortexa</span>
         </div>
-        <span className="text-xl font-bold tracking-tight text-white">Cortexa</span>
+        {onCloseMobile && (
+          <button 
+            onClick={onCloseMobile}
+            className="lg:hidden p-2 text-zinc-500 hover:text-white"
+          >
+            <X size={20} />
+          </button>
+        )}
       </div>
 
       <button
@@ -85,35 +99,35 @@ export function Sidebar({
       <div className="space-y-1 mb-6">
         <p className="px-3 text-[10px] font-bold text-zinc-600 uppercase tracking-widest mb-2">Módulos IA</p>
         <button 
-          onClick={onOpenWorkspace}
+          onClick={() => { onOpenWorkspace(); if (onCloseMobile) onCloseMobile(); }}
           className="flex items-center space-x-3 w-full px-3 py-2 rounded-xl text-zinc-400 hover:text-white hover:bg-zinc-900 transition-all group"
         >
           <LayoutGrid className="w-4 h-4 text-indigo-500" />
           <span className="text-sm font-medium">Workspace</span>
         </button>
         <button 
-          onClick={onOpenSmartCapture}
+          onClick={() => { onOpenSmartCapture(); if (onCloseMobile) onCloseMobile(); }}
           className="flex items-center space-x-3 w-full px-3 py-2 rounded-xl text-zinc-400 hover:text-white hover:bg-zinc-900 transition-all group"
         >
           <Upload className="w-4 h-4 text-pink-500" />
-          <span className="text-sm font-medium">Smart Capture</span>
+          <span className="text-sm font-medium">Captura Inteligente</span>
         </button>
         <button 
-          onClick={onOpenGraph}
+          onClick={() => { onOpenGraph(); if (onCloseMobile) onCloseMobile(); }}
           className="flex items-center space-x-3 w-full px-3 py-2 rounded-xl text-zinc-400 hover:text-white hover:bg-zinc-900 transition-all group"
         >
           <Network className="w-4 h-4 text-blue-500" />
-          <span className="text-sm font-medium">Second Brain</span>
+          <span className="text-sm font-medium">Cerebro Digital</span>
         </button>
         <button 
-          onClick={onOpenTimeline}
+          onClick={() => { onOpenTimeline(); if (onCloseMobile) onCloseMobile(); }}
           className="flex items-center space-x-3 w-full px-3 py-2 rounded-xl text-zinc-400 hover:text-white hover:bg-zinc-900 transition-all group"
         >
           <Clock className="w-4 h-4 text-orange-500" />
-          <span className="text-sm font-medium">Timeline</span>
+          <span className="text-sm font-medium">Línea de Tiempo</span>
         </button>
         <button 
-          onClick={onOpenKanban}
+          onClick={() => { onOpenKanban(); if (onCloseMobile) onCloseMobile(); }}
           className="flex items-center space-x-3 w-full px-3 py-2 rounded-xl text-zinc-400 hover:text-white hover:bg-zinc-900 transition-all group"
         >
           <Layout className="w-4 h-4 text-green-500" />
