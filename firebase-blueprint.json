@@ -1,0 +1,45 @@
+{
+  "entities": {
+    "Note": {
+      "title": "Note",
+      "description": "A user's note containing text, tags, and metadata.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "Unique identifier for the note." },
+        "userId": { "type": "string", "description": "ID of the user who owns the note." },
+        "title": { "type": "string", "description": "Title of the note." },
+        "content": { "type": "string", "description": "Main content of the note (Markdown/Rich Text)." },
+        "tags": { "type": "array", "items": { "type": "string" }, "description": "List of tags associated with the note." },
+        "isFavorite": { "type": "boolean", "description": "Whether the note is marked as favorite." },
+        "isPinned": { "type": "boolean", "description": "Whether the note is pinned to the top." },
+        "isArchived": { "type": "boolean", "description": "Whether the note is in the archive." },
+        "isDeleted": { "type": "boolean", "description": "Whether the note is in the trash." },
+        "createdAt": { "type": "string", "format": "date-time", "description": "Timestamp when the note was created." },
+        "updatedAt": { "type": "string", "format": "date-time", "description": "Timestamp when the note was last updated." },
+        "summary": { "type": "string", "description": "AI-generated summary of the note content." }
+      },
+      "required": ["userId", "title", "content", "createdAt", "updatedAt"]
+    },
+    "UserPreferences": {
+      "title": "UserPreferences",
+      "description": "User-specific settings and preferences.",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string", "description": "ID of the user." },
+        "theme": { "type": "string", "enum": ["light", "dark", "system"], "description": "Preferred UI theme." },
+        "lastActiveNoteId": { "type": "string", "description": "ID of the last opened note." }
+      },
+      "required": ["userId"]
+    }
+  },
+  "firestore": {
+    "/notes/{noteId}": {
+      "schema": "Note",
+      "description": "Collection of user notes."
+    },
+    "/preferences/{userId}": {
+      "schema": "UserPreferences",
+      "description": "User settings and preferences."
+    }
+  }
+}
