@@ -68,21 +68,25 @@ export const SmartCapture: React.FC<{ onClose: () => void }> = ({ onClose }) => 
       initial={{ opacity: 0, scale: 0.95 }}
       animate={{ opacity: 1, scale: 1 }}
       exit={{ opacity: 0, scale: 0.95 }}
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-md p-4"
     >
-      <div className="bg-white rounded-3xl shadow-2xl w-full max-w-lg overflow-hidden border border-slate-200">
-        <div className="p-6 border-b border-slate-100 flex items-center justify-between bg-slate-50">
+      <div className="bg-zinc-900 rounded-3xl shadow-2xl w-full max-w-lg overflow-hidden border border-zinc-800">
+        <div className="p-6 border-b border-zinc-800 flex items-center justify-between bg-zinc-900/50">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center text-white">
+            <div className="w-10 h-10 bg-orange-500 rounded-xl flex items-center justify-center text-white">
               <Upload size={20} />
             </div>
             <div>
-              <h2 className="text-xl font-semibold text-slate-800">Captura Inteligente</h2>
-              <p className="text-xs text-slate-500">Entrada Multimodal con IA</p>
+              <h2 className="text-xl font-bold text-white">Captura Inteligente</h2>
+              <p className="text-xs text-zinc-500 font-mono uppercase tracking-widest">Entrada Multimodal con IA</p>
             </div>
           </div>
-          <button onClick={onClose} className="p-2 hover:bg-slate-200 rounded-full transition-colors">
-            <X size={20} />
+          <button 
+            onClick={onClose} 
+            className="p-2 hover:bg-zinc-800 rounded-full transition-all text-zinc-400 hover:text-white"
+            title="Cerrar"
+          >
+            <X size={24} />
           </button>
         </div>
 
@@ -91,7 +95,7 @@ export const SmartCapture: React.FC<{ onClose: () => void }> = ({ onClose }) => 
             {...getRootProps()} 
             className={`
               border-2 border-dashed rounded-2xl p-12 flex flex-col items-center justify-center transition-all cursor-pointer
-              ${isDragActive ? 'border-indigo-500 bg-indigo-50' : 'border-slate-200 hover:border-indigo-400 hover:bg-slate-50'}
+              ${isDragActive ? 'border-orange-500 bg-orange-500/5' : 'border-zinc-800 hover:border-orange-500/50 hover:bg-zinc-800/30'}
               ${status === 'processing' ? 'pointer-events-none opacity-50' : ''}
             `}
           >
@@ -106,9 +110,9 @@ export const SmartCapture: React.FC<{ onClose: () => void }> = ({ onClose }) => 
                   exit={{ opacity: 0, y: -10 }}
                   className="flex flex-col items-center"
                 >
-                  <Loader2 className="w-12 h-12 text-indigo-600 animate-spin mb-4" />
-                  <p className="text-slate-600 font-medium">Procesando con IA...</p>
-                  <p className="text-xs text-slate-400 mt-1">Extrayendo contenido y generando etiquetas</p>
+                  <Loader2 className="w-12 h-12 text-orange-500 animate-spin mb-4" />
+                  <p className="text-zinc-300 font-medium">Procesando con IA...</p>
+                  <p className="text-xs text-zinc-500 mt-1">Extrayendo contenido y generando etiquetas</p>
                 </motion.div>
               ) : status === 'success' ? (
                 <motion.div 
@@ -118,8 +122,8 @@ export const SmartCapture: React.FC<{ onClose: () => void }> = ({ onClose }) => 
                   className="flex flex-col items-center"
                 >
                   <CheckCircle2 className="w-12 h-12 text-green-500 mb-4" />
-                  <p className="text-slate-600 font-medium">¡Captura completada!</p>
-                  <p className="text-xs text-slate-400 mt-1">La nota ha sido añadida a tu biblioteca</p>
+                  <p className="text-zinc-300 font-medium">¡Captura completada!</p>
+                  <p className="text-xs text-zinc-500 mt-1">La nota ha sido añadida a tu biblioteca</p>
                 </motion.div>
               ) : (
                 <motion.div 
@@ -129,41 +133,41 @@ export const SmartCapture: React.FC<{ onClose: () => void }> = ({ onClose }) => 
                   className="flex flex-col items-center"
                 >
                   <div className="flex gap-4 mb-6">
-                    <div className="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center text-blue-600">
+                    <div className="w-12 h-12 rounded-full bg-blue-500/10 flex items-center justify-center text-blue-400">
                       <ImageIcon size={24} />
                     </div>
-                    <div className="w-12 h-12 rounded-full bg-purple-100 flex items-center justify-center text-purple-600">
+                    <div className="w-12 h-12 rounded-full bg-purple-500/10 flex items-center justify-center text-purple-400">
                       <Mic size={24} />
                     </div>
-                    <div className="w-12 h-12 rounded-full bg-orange-100 flex items-center justify-center text-orange-600">
+                    <div className="w-12 h-12 rounded-full bg-orange-500/10 flex items-center justify-center text-orange-400">
                       <FileText size={24} />
                     </div>
                   </div>
-                  <p className="text-slate-600 font-medium text-center">
+                  <p className="text-zinc-300 font-medium text-center">
                     Arrastra imágenes, audios o documentos aquí
                   </p>
-                  <p className="text-sm text-slate-400 mt-2">O haz clic para seleccionar archivos</p>
+                  <p className="text-sm text-zinc-500 mt-2">O haz clic para seleccionar archivos</p>
                 </motion.div>
               )}
             </AnimatePresence>
           </div>
 
           <div className="mt-8 grid grid-cols-2 gap-4">
-            <div className="p-4 rounded-xl border border-slate-100 bg-slate-50 flex items-center gap-3">
-              <Mic size={18} className="text-slate-400" />
-              <span className="text-xs text-slate-600">Voz a Texto</span>
+            <div className="p-4 rounded-xl border border-zinc-800 bg-zinc-900/50 flex items-center gap-3">
+              <Mic size={18} className="text-zinc-500" />
+              <span className="text-xs text-zinc-400">Voz a Texto</span>
             </div>
-            <div className="p-4 rounded-xl border border-slate-100 bg-slate-50 flex items-center gap-3">
-              <ImageIcon size={18} className="text-slate-400" />
-              <span className="text-xs text-slate-600">OCR de Imágenes</span>
+            <div className="p-4 rounded-xl border border-zinc-800 bg-zinc-900/50 flex items-center gap-3">
+              <ImageIcon size={18} className="text-zinc-500" />
+              <span className="text-xs text-zinc-400">OCR de Imágenes</span>
             </div>
-            <div className="p-4 rounded-xl border border-slate-100 bg-slate-50 flex items-center gap-3">
-              <FileText size={18} className="text-slate-400" />
-              <span className="text-xs text-slate-600">Documentos PDF/TXT</span>
+            <div className="p-4 rounded-xl border border-zinc-800 bg-zinc-900/50 flex items-center gap-3">
+              <FileText size={18} className="text-zinc-500" />
+              <span className="text-xs text-zinc-400">Documentos PDF/TXT</span>
             </div>
-            <div className="p-4 rounded-xl border border-slate-100 bg-slate-50 flex items-center gap-3">
-              <LinkIcon size={18} className="text-slate-400" />
-              <span className="text-xs text-slate-600">Recorte Web (Próximamente)</span>
+            <div className="p-4 rounded-xl border border-zinc-800 bg-zinc-900/50 flex items-center gap-3">
+              <LinkIcon size={18} className="text-zinc-500" />
+              <span className="text-xs text-zinc-400">Recorte Web (Próximamente)</span>
             </div>
           </div>
         </div>

@@ -46,7 +46,7 @@ export function Sidebar({
   onOpenWorkspace,
   onCloseMobile
 }: SidebarProps) {
-  const { addNote, setSelectedNoteId } = useNoteStore();
+  const { addNote, activeFilter, setActiveFilter } = useNoteStore();
   const { preferences, updatePreferences } = useUserStore();
 
   const handleNewNote = () => {
@@ -81,9 +81,10 @@ export function Sidebar({
         {onCloseMobile && (
           <button 
             onClick={onCloseMobile}
-            className="lg:hidden p-2 text-zinc-500 hover:text-white"
+            className="lg:hidden p-2 text-zinc-500 hover:text-white hover:bg-zinc-800 rounded-full transition-all"
+            title="Cerrar menú"
           >
-            <X size={20} />
+            <X size={24} />
           </button>
         )}
       </div>
@@ -161,12 +162,18 @@ export function Sidebar({
         {menuItems.map((item) => (
           <button
             key={item.id}
+            onClick={() => {
+              setActiveFilter(item.id as any);
+              if (onCloseMobile) onCloseMobile();
+            }}
             className={cn(
-              "flex items-center space-x-3 w-full px-3 py-2.5 rounded-xl text-zinc-400 hover:text-white hover:bg-zinc-900 transition-all group",
-              item.id === 'all' && "text-white bg-zinc-900"
+              "flex items-center space-x-3 w-full px-3 py-2.5 rounded-xl transition-all group",
+              item.id === activeFilter 
+                ? "text-white bg-zinc-900 border border-zinc-800" 
+                : "text-zinc-400 hover:text-white hover:bg-zinc-900"
             )}
           >
-            <item.icon className="w-5 h-5" />
+            <item.icon className={cn("w-5 h-5", item.id === activeFilter && "text-orange-500")} />
             <span className="font-medium">{item.label}</span>
           </button>
         ))}

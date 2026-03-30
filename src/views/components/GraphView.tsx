@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import * as d3 from 'd3';
 import { useNoteStore } from '../../models/store/useNoteStore';
 import { Note } from '../../models/types';
-import { X, Maximize2, Minimize2 } from 'lucide-react';
+import { X, Maximize2, Minimize2, Network, Info, Search, Filter, Share2, Download, Settings } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 
 interface Node extends d3.SimulationNodeDatum {
@@ -106,7 +106,7 @@ export const GraphView: React.FC<{ onClose: () => void }> = ({ onClose }) => {
       .attr("x", 12)
       .attr("y", 4)
       .style("font-size", "12px")
-      .style("fill", "#475569")
+      .style("fill", "#94a3b8")
       .style("pointer-events", "none");
 
     simulation.on("tick", () => {
@@ -147,42 +147,52 @@ export const GraphView: React.FC<{ onClose: () => void }> = ({ onClose }) => {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className={`fixed inset-0 z-50 bg-white/90 backdrop-blur-sm flex flex-col ${isFullscreen ? 'p-0' : 'p-8'}`}
+      className={`fixed inset-0 z-50 bg-[#0a0a0a]/90 backdrop-blur-md flex flex-col ${isFullscreen ? 'p-0' : 'p-8'}`}
     >
       <div className="flex items-center justify-between mb-4 px-4">
-        <h2 className="text-2xl font-serif italic text-slate-800">Mapa del Conocimiento (Cerebro Digital)</h2>
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 bg-blue-500 rounded-xl flex items-center justify-center text-white">
+            <Network size={20} />
+          </div>
+          <div>
+            <h2 className="text-2xl font-bold tracking-tight text-white">Cerebro Digital</h2>
+            <p className="text-xs text-zinc-500 font-mono uppercase tracking-widest">Mapa de Conexiones del Conocimiento</p>
+          </div>
+        </div>
         <div className="flex items-center gap-2">
           <button 
             onClick={() => setIsFullscreen(!isFullscreen)}
-            className="p-2 hover:bg-slate-100 rounded-full transition-colors"
+            className="p-2 hover:bg-zinc-800 rounded-full transition-colors text-zinc-400 hover:text-white"
+            title={isFullscreen ? "Minimizar" : "Maximizar"}
           >
             {isFullscreen ? <Minimize2 size={20} /> : <Maximize2 size={20} />}
           </button>
           <button 
             onClick={onClose}
-            className="p-2 hover:bg-slate-100 rounded-full transition-colors"
+            className="p-2 hover:bg-zinc-800 rounded-full transition-colors text-zinc-400 hover:text-white"
+            title="Cerrar"
           >
-            <X size={20} />
+            <X size={24} />
           </button>
         </div>
       </div>
       
-      <div className="flex-1 bg-slate-50 rounded-2xl border border-slate-200 overflow-hidden relative">
+      <div className="flex-1 bg-zinc-900/50 rounded-2xl border border-zinc-800 overflow-hidden relative">
         <svg 
           ref={svgRef} 
           className="w-full h-full"
           style={{ cursor: 'grab' }}
         />
-        <div className="absolute bottom-4 left-4 bg-white/80 backdrop-blur p-3 rounded-lg border border-slate-200 text-xs text-slate-500">
-          <div className="flex items-center gap-2 mb-1">
-            <div className="w-3 h-3 rounded-full bg-blue-500"></div>
+        <div className="absolute bottom-4 left-4 bg-zinc-900/80 backdrop-blur p-4 rounded-xl border border-zinc-800 text-xs text-zinc-400">
+          <div className="flex items-center gap-2 mb-2">
+            <div className="w-3 h-3 rounded-full bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.5)]"></div>
             <span>Notas con etiquetas</span>
           </div>
-          <div className="flex items-center gap-2">
-            <div className="w-3 h-3 rounded-full bg-slate-400"></div>
+          <div className="flex items-center gap-2 mb-3">
+            <div className="w-3 h-3 rounded-full bg-zinc-600"></div>
             <span>Notas sin etiquetas</span>
           </div>
-          <p className="mt-2 italic">Las líneas representan conexiones automáticas por etiquetas compartidas o enlaces directos.</p>
+          <p className="italic text-zinc-500 max-w-[200px]">Las líneas representan conexiones automáticas por etiquetas compartidas o enlaces directos.</p>
         </div>
       </div>
     </motion.div>

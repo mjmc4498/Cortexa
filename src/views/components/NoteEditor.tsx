@@ -21,7 +21,11 @@ import {
   Type as TypeIcon,
   Target,
   Briefcase,
-  ChevronLeft
+  ChevronLeft,
+  RotateCcw,
+  Archive as ArchiveIcon,
+  Plus,
+  ChevronDown
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { useNoteStore, useUserStore } from '../../models/store/useNoteStore';
@@ -32,7 +36,18 @@ import { es } from 'date-fns/locale';
 import ReactMarkdown from 'react-markdown';
 
 export function NoteEditor() {
-  const { notes, selectedNoteId, updateNote, deleteNote, setSelectedNoteId, toggleTask, removeTask, addTask } = useNoteStore();
+  const { 
+    notes, 
+    selectedNoteId, 
+    updateNote, 
+    deleteNote, 
+    setSelectedNoteId, 
+    toggleTask, 
+    removeTask, 
+    addTask,
+    restoreNote,
+    permanentlyDeleteNote
+  } = useNoteStore();
   const { preferences } = useUserStore();
   const note = notes.find(n => n.id === selectedNoteId);
   
@@ -44,6 +59,9 @@ export function NoteEditor() {
   const [isExtractingTasks, setIsExtractingTasks] = useState(false);
   const [isSuggestingLinks, setIsSuggestingLinks] = useState(false);
   const [isPreview, setIsPreview] = useState(false);
+  const [newTaskText, setNewTaskText] = useState('');
+  const [showRewriteMenu, setShowRewriteMenu] = useState(false);
+  const [showTranslateMenu, setShowTranslateMenu] = useState(false);
 
   useEffect(() => {
     if (note) {
@@ -101,6 +119,13 @@ export function NoteEditor() {
       await addTask(note.id, task);
     }
     setIsExtractingTasks(false);
+  };
+
+  const handleAddTask = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!note || !newTaskText.trim()) return;
+    await addTask(note.id, { text: newTaskText.trim() });
+    setNewTaskText('');
   };
 
   const handleSuggestLinks = async () => {
@@ -165,30 +190,108 @@ export function NoteEditor() {
 
         <div className="flex items-center space-x-2">
           {/* AI Copilot Quick Actions */}
-          <div className="flex items-center bg-zinc-900 rounded-xl p-1 mr-2 border border-zinc-800">
-            <button 
-              onClick={() => handleRewrite('Mejora la claridad y el tono')}
-              disabled={isRewriting}
-              title="Mejorar Claridad"
-              className="p-1.5 hover:bg-zinc-800 rounded-lg text-zinc-400 hover:text-orange-500 transition-all disabled:opacity-50"
-            >
-              <Wand2 size={16} />
-            </button>
-            <button 
-              onClick={() => handleRewrite('Traduce al inglés')}
-              disabled={isRewriting}
-              title="Traducir al Inglés"
-              className="p-1.5 hover:bg-zinc-800 rounded-lg text-zinc-400 hover:text-orange-500 transition-all disabled:opacity-50"
-            >
-              <Languages size={16} />
-            </button>
+          <div className="flex items-center bg-zinc-900 rounded-xl p-1 mr-2 border border-zinc-800 relative">
+            <div className="relative">
+              <button 
+                onClick={() => setShowRewriteMenu(!showRewriteMenu)}
+                disabled={isRewriting}
+                title="Reescribir con IA"
+                className="flex items-center gap-1 p-1.5 hover:bg-zinc-800 rounded-lg text-zinc-400 hover:text-orange-500 transition-all disabled:opacity-50"
+              >
+                <Wand2 size={16} />
+                <ChevronDown size={10} />
+              </button>
+              
+              <AnimatePresence>
+                {showRewriteMenu && (
+                  <motion.div 
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: 10 }}
+                    className="absolute top-full left-0 mt-2 w-48 bg-zinc-900 border border-zinc-800 rounded-xl shadow-2xl z-20 overflow-hidden"
+                  >
+                    {[
+                      { label: 'Mejorar claridad', instruction: 'Mejora la claridad y el tono' },
+                      { label: 'Hacer más profesional', instruction: 'Reescribe de forma más profesional y formal' },
+                      { label: 'Hacer más casual', instruction: 'Reescribe de forma más casual y amigable' },
+                      { label: 'Corregir gramática', instruction: 'Corrige errores de gramática y ortografía' },
+                      { label: 'Resumir en puntos', instruction: 'Convierte el contenido en una lista de puntos clave' },
+                    ].map((opt) => (
+                      <button
+                        key={opt.instruction}
+                        onClick={() => {
+                          handleRewrite(opt.instruction);
+                          setShowRewriteMenu(false);
+                        }}
+                        className="w-full text-left px-4 py-2 text-xs text-zinc-400 hover:bg-zinc-800 hover:text-white transition-all"
+                      >
+                        {opt.label}
+                      </button>
+                    ))}
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+
+            <div className="relative">
+              <button 
+                onClick={() => setShowTranslateMenu(!showTranslateMenu)}
+                disabled={isRewriting}
+                title="Traducir con IA"
+                className="flex items-center gap-1 p-1.5 hover:bg-zinc-800 rounded-lg text-zinc-400 hover:text-orange-500 transition-all disabled:opacity-50"
+              >
+                <Languages size={16} />
+                <ChevronDown size={10} />
+              </button>
+              
+              <AnimatePresence>
+                {showTranslateMenu && (
+                  <motion.div 
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: 10 }}
+                    className="absolute top-full left-0 mt-2 w-48 bg-zinc-900 border border-zinc-800 rounded-xl shadow-2xl z-20 overflow-hidden"
+                  >
+                    {[
+                      { label: 'Inglés', instruction: 'Traduce al inglés' },
+                      { label: 'Francés', instruction: 'Traduce al francés' },
+                      { label: 'Alemán', instruction: 'Traduce al alemán' },
+                      { label: 'Italiano', instruction: 'Traduce al italiano' },
+                      { label: 'Portugués', instruction: 'Traduce al portugués' },
+                      { label: 'Japonés', instruction: 'Traduce al japonés' },
+                    ].map((opt) => (
+                      <button
+                        key={opt.instruction}
+                        onClick={() => {
+                          handleRewrite(opt.instruction);
+                          setShowTranslateMenu(false);
+                        }}
+                        className="w-full text-left px-4 py-2 text-xs text-zinc-400 hover:bg-zinc-800 hover:text-white transition-all"
+                      >
+                        {opt.label}
+                      </button>
+                    ))}
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
             <button 
               onClick={handleExtractTasks}
               disabled={isExtractingTasks}
-              title="Extraer Tareas"
+              title="Extraer Tareas (IA)"
               className="p-1.5 hover:bg-zinc-800 rounded-lg text-zinc-400 hover:text-orange-500 transition-all disabled:opacity-50"
             >
               <ListTodo size={16} />
+            </button>
+            <button 
+              onClick={() => {
+                const el = document.getElementById('tasks-section');
+                el?.scrollIntoView({ behavior: 'smooth' });
+              }}
+              title="Ver Checklist"
+              className="p-1.5 hover:bg-zinc-800 rounded-lg text-zinc-400 hover:text-orange-500 transition-all"
+            >
+              <CheckSquare size={16} />
             </button>
           </div>
 
@@ -205,15 +308,48 @@ export function NoteEditor() {
           <button 
             onClick={handleExport}
             className="p-2 rounded-xl bg-zinc-900 text-zinc-400 hover:bg-zinc-800 transition-all"
+            title="Exportar como Markdown"
           >
             <Download className="w-5 h-5" />
           </button>
+          
+          {note.isDeleted || note.isArchived ? (
+            <button 
+              onClick={() => restoreNote(note.id)}
+              className="p-2 rounded-xl bg-zinc-900 text-green-500 hover:bg-green-500/10 transition-all"
+              title="Restaurar Nota"
+            >
+              <RotateCcw className="w-5 h-5" />
+            </button>
+          ) : (
+            <button 
+              onClick={() => updateNote(note.id, { isArchived: true })}
+              className="p-2 rounded-xl bg-zinc-900 text-zinc-400 hover:bg-zinc-800 transition-all"
+              title="Archivar Nota"
+            >
+              <ArchiveIcon className="w-5 h-5" />
+            </button>
+          )}
+
           <button 
             onClick={() => {
-              deleteNote(note.id);
-              setSelectedNoteId(null);
+              if (note.isDeleted) {
+                if (confirm('¿Estás seguro de que quieres eliminar esta nota permanentemente?')) {
+                  permanentlyDeleteNote(note.id);
+                  setSelectedNoteId(null);
+                }
+              } else {
+                deleteNote(note.id);
+                setSelectedNoteId(null);
+              }
             }}
-            className="p-2 rounded-xl bg-zinc-900 text-zinc-400 hover:bg-red-500/10 hover:text-red-500 transition-all"
+            className={cn(
+              "p-2 rounded-xl transition-all",
+              note.isDeleted 
+                ? "bg-red-500 text-white hover:bg-red-600" 
+                : "bg-zinc-900 text-zinc-400 hover:bg-red-500/10 hover:text-red-500"
+            )}
+            title={note.isDeleted ? "Eliminar Permanentemente" : "Mover a la Papelera"}
           >
             <Trash2 className="w-5 h-5" />
           </button>
@@ -237,9 +373,10 @@ export function NoteEditor() {
                 </div>
                 <button 
                   onClick={() => updateNote(note.id, { summary: '' })}
-                  className="p-1 rounded-lg hover:bg-orange-500/10 text-orange-500/50 hover:text-orange-500 transition-all"
+                  className="p-1.5 rounded-lg hover:bg-orange-500/10 text-orange-500/50 hover:text-orange-500 transition-all"
+                  title="Eliminar resumen"
                 >
-                  <X className="w-4 h-4" />
+                  <X className="w-5 h-5" />
                 </button>
               </div>
               {isSummarizing ? (
@@ -273,9 +410,10 @@ export function NoteEditor() {
                 <span>{tag}</span>
                 <button 
                   onClick={() => updateNote(note.id, { tags: note.tags.filter(t => t !== tag) })}
-                  className="hover:text-red-400 transition-all"
+                  className="hover:text-red-400 transition-all p-0.5 rounded-md hover:bg-red-400/10"
+                  title="Eliminar etiqueta"
                 >
-                  <X className="w-3 h-3" />
+                  <X className="w-3.5 h-3.5" />
                 </button>
               </span>
             ))}
@@ -335,12 +473,43 @@ export function NoteEditor() {
           )}
 
           {/* Tasks Section */}
-          {note.tasks && note.tasks.length > 0 && (
-            <div className="pt-8 border-t border-zinc-800/50">
-              <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+          <div id="tasks-section" className="pt-8 border-t border-zinc-800/50">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold text-white flex items-center gap-2">
                 <CheckSquare size={20} className="text-orange-500" />
                 Tareas Pendientes
               </h3>
+              {note.tasks && note.tasks.length > 0 && (
+                <button 
+                  onClick={() => {
+                    if (confirm('¿Estás seguro de que quieres eliminar todas las tareas?')) {
+                      updateNote(note.id, { tasks: [] });
+                    }
+                  }}
+                  className="text-[10px] text-zinc-600 hover:text-red-500 transition-all uppercase font-bold tracking-widest"
+                >
+                  Limpiar todo
+                </button>
+              )}
+            </div>
+            
+            <form onSubmit={handleAddTask} className="mb-6 flex gap-2">
+              <input 
+                type="text" 
+                value={newTaskText}
+                onChange={(e) => setNewTaskText(e.target.value)}
+                placeholder="Añadir una nueva tarea..."
+                className="flex-1 bg-zinc-900 border border-zinc-800 rounded-xl px-4 py-2 text-sm text-white focus:ring-2 focus:ring-orange-500/50 transition-all"
+              />
+              <button 
+                type="submit"
+                className="bg-orange-500 text-white p-2 rounded-xl hover:bg-orange-600 transition-all active:scale-95"
+              >
+                <Plus size={20} />
+              </button>
+            </form>
+
+            {note.tasks && note.tasks.length > 0 && (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {note.tasks.map(task => (
                   <div 
@@ -366,15 +535,16 @@ export function NoteEditor() {
                     </div>
                     <button 
                       onClick={() => removeTask(note.id, task.id)}
-                      className="text-zinc-600 hover:text-red-500 p-1"
+                      className="text-zinc-600 hover:text-red-500 p-1.5 hover:bg-red-500/10 rounded-lg transition-all"
+                      title="Eliminar tarea"
                     >
-                      <X size={14} />
+                      <X size={18} />
                     </button>
                   </div>
                 ))}
               </div>
-            </div>
-          )}
+            )}
+          </div>
 
           {/* Backlinks Section */}
           <div className="pt-8 border-t border-zinc-800/50">

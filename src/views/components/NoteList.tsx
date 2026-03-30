@@ -1,4 +1,4 @@
-import { Search, Star, Pin, Tag, Clock, Sparkles, Target, Zap, BrainCircuit } from 'lucide-react';
+import { Search, Star, Pin, Tag, Clock, Sparkles, Target, Zap, BrainCircuit, Trash2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { useNoteStore, useUserStore } from '../../models/store/useNoteStore';
 import { cn } from '../../lib/utils';
@@ -18,7 +18,9 @@ export function NoteList() {
     loading,
     isSemanticSearch,
     setSemanticSearch,
-    performSemanticSearch
+    performSemanticSearch,
+    activeFilter,
+    emptyTrash
   } = useNoteStore();
   const { preferences } = useUserStore();
   const [suggestions, setSuggestions] = useState<string[]>([]);
@@ -65,7 +67,23 @@ export function NoteList() {
           note.category === preferences.focusMode || 
           note.tags.includes(preferences.focusMode);
 
-        return matchesSearch && matchesFocus;
+        const matchesFilter = (() => {
+          switch (activeFilter) {
+            case 'favorites': return note.isFavorite && !note.isDeleted;
+            case 'archive': return note.isArchived && !note.isDeleted;
+            case 'trash': return note.isDeleted;
+            case 'tags': return note.tags.length > 0 && !note.isDeleted && !note.isArchived;
+            case 'all':
+            default: return !note.isDeleted && !note.isArchived;
+          }
+        })();
+
+        return matchesSearch && matchesFocus && matchesFilter;
+      })
+      .sort((a, b) => {
+        if (a.isPinned && !b.isPinned) return -1;
+        if (!a.isPinned && b.isPinned) return 1;
+        return new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime();
       });
 
   return (
@@ -96,6 +114,20 @@ export function NoteList() {
           <div className="px-1 py-1 text-[10px] text-orange-500 font-mono animate-pulse flex items-center gap-2">
             <BrainCircuit size={12} /> Analizando significado...
           </div>
+        )}
+
+        {activeFilter === 'trash' && filteredNotes.length > 0 && (
+          <button 
+            onClick={() => {
+              if (confirm('¿Estás seguro de que quieres vaciar la papelera? Esta acción no se puede deshacer.')) {
+                emptyTrash();
+              }
+            }}
+            className="w-full flex items-center justify-center gap-2 py-2 px-4 bg-red-500/10 text-red-500 border border-red-500/20 rounded-xl hover:bg-red-500 hover:text-white transition-all text-xs font-bold"
+          >
+            <Trash2 size={14} />
+            Vaciar Papelera
+          </button>
         )}
 
         {/* Predictive Suggestions */}

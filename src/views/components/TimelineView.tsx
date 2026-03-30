@@ -35,7 +35,8 @@ export const TimelineView: React.FC<{ onClose: () => void }> = ({ onClose }) => 
         </div>
         <button 
           onClick={onClose}
-          className="p-2 hover:bg-zinc-900 rounded-full transition-colors"
+          className="p-2 hover:bg-zinc-800 rounded-full transition-all text-zinc-400 hover:text-white"
+          title="Cerrar"
         >
           <X size={24} />
         </button>

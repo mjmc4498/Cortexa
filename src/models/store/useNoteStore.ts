@@ -12,7 +12,8 @@ import {
   orderBy,
   setDoc,
   serverTimestamp,
-  getDoc
+  getDoc,
+  getDocs
 } from 'firebase/firestore';
 import { db, auth } from '../../firebase';
 import { generateEmbedding, semanticSearch } from '../../controllers/services/aiService';
@@ -23,13 +24,18 @@ interface NoteState {
   searchQuery: string;
   isSemanticSearch: boolean;
   selectedNoteId: string | null;
+  activeFilter: 'all' | 'favorites' | 'tags' | 'archive' | 'trash';
   setSearchQuery: (query: string) => void;
   setSemanticSearch: (enabled: boolean) => void;
   setSelectedNoteId: (id: string | null) => void;
+  setActiveFilter: (filter: 'all' | 'favorites' | 'tags' | 'archive' | 'trash') => void;
   fetchNotes: (userId: string) => () => void;
   addNote: (note: Partial<Note>) => Promise<string | undefined>;
   updateNote: (id: string, updates: Partial<Note>) => Promise<void>;
   deleteNote: (id: string) => Promise<void>;
+  restoreNote: (id: string) => Promise<void>;
+  permanentlyDeleteNote: (id: string) => Promise<void>;
+  emptyTrash: () => Promise<void>;
   addTask: (noteId: string, task: Partial<Task>) => Promise<void>;
   toggleTask: (noteId: string, taskId: string) => Promise<void>;
   removeTask: (noteId: string, taskId: string) => Promise<void>;
@@ -52,17 +58,18 @@ export const useNoteStore = create<NoteState>((set, get) => ({
   searchQuery: '',
   isSemanticSearch: false,
   selectedNoteId: null,
+  activeFilter: 'all',
 
   setSearchQuery: (query) => set({ searchQuery: query }),
   setSemanticSearch: (enabled) => set({ isSemanticSearch: enabled }),
   setSelectedNoteId: (id) => set({ selectedNoteId: id }),
+  setActiveFilter: (filter) => set({ activeFilter: filter }),
 
   fetchNotes: (userId) => {
     set({ loading: true });
     const q = query(
       collection(db, 'notes'),
       where('userId', '==', userId),
-      where('isDeleted', '==', false),
       orderBy('updatedAt', 'desc')
     );
 
@@ -143,6 +150,43 @@ export const useNoteStore = create<NoteState>((set, get) => ({
       });
     } catch (error) {
       console.error("Error deleting note:", error);
+    }
+  },
+  restoreNote: async (id) => {
+    try {
+      const noteRef = doc(db, 'notes', id);
+      await updateDoc(noteRef, {
+        isDeleted: false,
+        isArchived: false,
+        updatedAt: new Date().toISOString(),
+      });
+    } catch (error) {
+      console.error("Error restoring note:", error);
+    }
+  },
+  permanentlyDeleteNote: async (id) => {
+    try {
+      const noteRef = doc(db, 'notes', id);
+      await deleteDoc(noteRef);
+    } catch (error) {
+      console.error("Error permanently deleting note:", error);
+    }
+  },
+  emptyTrash: async () => {
+    const userId = auth.currentUser?.uid;
+    if (!userId) return;
+    
+    try {
+      const q = query(
+        collection(db, 'notes'),
+        where('userId', '==', userId),
+        where('isDeleted', '==', true)
+      );
+      const snapshot = await getDocs(q);
+      const deletePromises = snapshot.docs.map(d => deleteDoc(d.ref));
+      await Promise.all(deletePromises);
+    } catch (error) {
+      console.error("Error emptying trash:", error);
     }
   },
 

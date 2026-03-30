@@ -12,7 +12,7 @@ import { SmartCapture } from './views/components/SmartCapture';
 import { TimelineView } from './views/components/TimelineView';
 import { WorkspaceView } from './views/components/WorkspaceView';
 import { ErrorBoundary } from './views/components/ErrorBoundary';
-import { LogIn, Loader2, Sparkles, Layout, X } from 'lucide-react';
+import { LogIn, Loader2, Sparkles, Menu, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { cn } from './lib/utils';
 
@@ -157,7 +157,7 @@ export default function App() {
               onClick={() => setIsSidebarOpen(true)}
               className="p-2 hover:bg-zinc-900 rounded-lg"
             >
-              <Layout className="w-6 h-6" />
+              <Menu className="w-6 h-6" />
             </button>
           </div>
 
@@ -175,12 +175,6 @@ export default function App() {
             <AnimatePresence mode="wait">
               {selectedNoteId ? (
                 <div className="flex-1 flex flex-col h-full relative">
-                  <button 
-                    onClick={() => setSelectedNoteId(null)}
-                    className="lg:hidden absolute top-4 left-4 z-20 p-2 bg-zinc-900 rounded-full border border-zinc-800"
-                  >
-                    <X className="w-5 h-5" />
-                  </button>
                   <NoteEditor key={selectedNoteId} />
                 </div>
               ) : (

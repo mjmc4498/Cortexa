@@ -54,53 +54,55 @@ export const KanbanView: React.FC<{ onClose: () => void }> = ({ onClose }) => {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: 20 }}
-      className={`fixed inset-0 z-50 bg-slate-50 flex flex-col ${isFullscreen ? 'p-0' : 'p-8'}`}
+      className={`fixed inset-0 z-50 bg-[#0a0a0a] flex flex-col ${isFullscreen ? 'p-0' : 'p-8'}`}
     >
       <div className="flex items-center justify-between mb-6 px-4">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center text-white">
+          <div className="w-10 h-10 bg-green-500 rounded-xl flex items-center justify-center text-white">
             <Layout size={20} />
           </div>
           <div>
-            <h2 className="text-2xl font-serif italic text-slate-800">Tablero Kanban</h2>
-            <p className="text-xs text-slate-500">Organización visual de tus proyectos</p>
+            <h2 className="text-2xl font-bold tracking-tight text-white">Tablero Kanban</h2>
+            <p className="text-xs text-zinc-500 font-mono uppercase tracking-widest">Organización visual de tus proyectos</p>
           </div>
         </div>
         <div className="flex items-center gap-2">
           <button 
             onClick={() => setIsFullscreen(!isFullscreen)}
-            className="p-2 hover:bg-slate-200 rounded-full transition-colors"
+            className="p-2 hover:bg-zinc-800 rounded-full transition-colors text-zinc-400 hover:text-white"
+            title={isFullscreen ? "Minimizar" : "Maximizar"}
           >
             {isFullscreen ? <Minimize2 size={20} /> : <Maximize2 size={20} />}
           </button>
           <button 
             onClick={onClose}
-            className="p-2 hover:bg-slate-200 rounded-full transition-colors"
+            className="p-2 hover:bg-zinc-800 rounded-full transition-colors text-zinc-400 hover:text-white"
+            title="Cerrar"
           >
-            <X size={20} />
+            <X size={24} />
           </button>
         </div>
       </div>
 
-      <div className="flex-1 flex gap-6 overflow-x-auto pb-6 px-4">
+      <div className="flex-1 flex gap-6 overflow-x-auto pb-6 px-4 custom-scrollbar">
         {COLUMNS.map(column => (
           <div 
             key={column.id} 
-            className={`flex-shrink-0 w-80 rounded-2xl border flex flex-col ${column.color}`}
+            className="flex-shrink-0 w-80 rounded-2xl border border-zinc-800 bg-zinc-900/40 flex flex-col backdrop-blur-sm"
           >
-            <div className="p-4 flex items-center justify-between">
-              <h3 className="font-semibold text-slate-700 flex items-center gap-2">
+            <div className="p-4 flex items-center justify-between border-b border-zinc-800/50">
+              <h3 className="font-bold text-zinc-300 flex items-center gap-2 text-sm uppercase tracking-wider">
                 {column.title}
-                <span className="text-xs bg-white/50 px-2 py-0.5 rounded-full border border-black/5">
+                <span className="text-[10px] bg-zinc-800 px-2 py-0.5 rounded-full border border-zinc-700 text-zinc-500">
                   {groupedNotes[column.id].length}
                 </span>
               </h3>
-              <button className="p-1 hover:bg-black/5 rounded-md">
+              <button className="p-1 hover:bg-zinc-800 rounded-md text-zinc-500 hover:text-white transition-colors">
                 <Plus size={16} />
               </button>
             </div>
 
-            <div className="flex-1 overflow-y-auto p-3 space-y-3">
+            <div className="flex-1 overflow-y-auto p-3 space-y-3 custom-scrollbar">
               {groupedNotes[column.id].map(note => (
                 <motion.div
                   key={note.id}
@@ -109,25 +111,25 @@ export const KanbanView: React.FC<{ onClose: () => void }> = ({ onClose }) => {
                     setSelectedNoteId(note.id);
                     onClose();
                   }}
-                  className="bg-white p-4 rounded-xl shadow-sm border border-slate-200 hover:shadow-md transition-all cursor-pointer group"
+                  className="bg-zinc-800/50 p-4 rounded-xl border border-zinc-800 hover:border-orange-500/50 hover:bg-zinc-800 transition-all cursor-pointer group"
                 >
                   <div className="flex items-start justify-between mb-2">
-                    <h4 className="font-medium text-slate-800 text-sm line-clamp-2">{note.title}</h4>
+                    <h4 className="font-bold text-zinc-200 text-sm line-clamp-2 group-hover:text-orange-500 transition-colors">{note.title}</h4>
                     <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                      {note.isPinned && <Pin size={12} className="text-indigo-500" />}
-                      {note.isFavorite && <Star size={12} className="text-amber-500 fill-amber-500" />}
+                      {note.isPinned && <Pin size={12} className="text-orange-500" />}
+                      {note.isFavorite && <Star size={12} className="text-yellow-500 fill-yellow-500" />}
                     </div>
                   </div>
-                  <p className="text-xs text-slate-500 line-clamp-3 mb-3">
+                  <p className="text-xs text-zinc-500 line-clamp-3 mb-4 leading-relaxed">
                     {note.summary || note.content.substring(0, 100)}
                   </p>
-                  <div className="flex items-center justify-between mt-auto pt-3 border-t border-slate-50">
-                    <span className="text-[10px] text-slate-400">
+                  <div className="flex items-center justify-between mt-auto pt-3 border-t border-zinc-800/50">
+                    <span className="text-[10px] text-zinc-600 font-mono">
                       {format(new Date(note.updatedAt), 'd MMM', { locale: es })}
                     </span>
                     <div className="flex gap-1">
                       {note.tags.slice(0, 2).map(tag => (
-                        <span key={tag} className="text-[9px] bg-slate-100 text-slate-500 px-1.5 py-0.5 rounded">
+                        <span key={tag} className="text-[9px] bg-zinc-900 text-zinc-500 px-1.5 py-0.5 rounded border border-zinc-800">
                           #{tag}
                         </span>
                       ))}
@@ -136,7 +138,7 @@ export const KanbanView: React.FC<{ onClose: () => void }> = ({ onClose }) => {
                 </motion.div>
               ))}
               {groupedNotes[column.id].length === 0 && (
-                <div className="h-24 border-2 border-dashed border-black/5 rounded-xl flex items-center justify-center text-slate-400 text-xs italic">
+                <div className="h-24 border-2 border-dashed border-zinc-800 rounded-xl flex items-center justify-center text-zinc-700 text-xs italic">
                   Sin notas aquí
                 </div>
               )}
