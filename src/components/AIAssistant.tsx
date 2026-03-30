@@ -20,7 +20,7 @@ export function AIAssistant() {
   const [isOpen, setIsOpen] = useState(false);
   const [query, setQuery] = useState('');
   const [messages, setMessages] = useState<ChatMessage[]>([
-    { role: 'model', text: "¡Hola! Soy tu asistente de Cortexa. ¡Pregúntame cualquier cosa sobre tus notas!" }
+    { role: 'model', text: "¡Hola! Soy tu asistente de Cortexa. ¡Pregúntame cualquier cosa sobre tus notas!", timestamp: new Date().toISOString() }
   ]);
   const [isLoading, setIsLoading] = useState(false);
   const { notes } = useNoteStore();
@@ -37,14 +37,14 @@ export function AIAssistant() {
 
     const userMessage = query.trim();
     setQuery('');
-    setMessages(prev => [...prev, { role: 'user', text: userMessage }]);
+    setMessages(prev => [...prev, { role: 'user', text: userMessage, timestamp: new Date().toISOString() }]);
     setIsLoading(true);
 
     try {
       const response = await askAboutNotes(userMessage, notes);
-      setMessages(prev => [...prev, { role: 'model', text: response }]);
+      setMessages(prev => [...prev, { role: 'model', text: response, timestamp: new Date().toISOString() }]);
     } catch (error) {
-      setMessages(prev => [...prev, { role: 'model', text: "Lo siento, tuve problemas para procesar eso." }]);
+      setMessages(prev => [...prev, { role: 'model', text: "Lo siento, tuve problemas para procesar eso.", timestamp: new Date().toISOString() }]);
     } finally {
       setIsLoading(false);
     }

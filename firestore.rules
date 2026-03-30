@@ -12,7 +12,7 @@ service cloud.firestore {
     }
     
     function isDocOwner() {
-      return isAuthenticated() && request.auth.uid == resource.data.userId;
+      return isAuthenticated() && (resource == null || resource.data.userId == request.auth.uid);
     }
 
     function isValidNote(data) {
@@ -23,20 +23,35 @@ service cloud.firestore {
              data.isFavorite is bool &&
              data.isPinned is bool &&
              data.isArchived is bool &&
-             data.isDeleted is bool;
+             data.isDeleted is bool &&
+             (!('category' in data) || data.category in ['work', 'study', 'personal', 'none']) &&
+             (!('tasks' in data) || data.tasks is list) &&
+             (!('backlinks' in data) || data.backlinks is list) &&
+             (!('forwardLinks' in data) || data.forwardLinks is list);
+    }
+
+    function isValidPresence(data) {
+      return data.userId == request.auth.uid &&
+             data.lastActive is string;
     }
 
     // Notes rules
     match /notes/{noteId} {
-      allow read: if isDocOwner();
+      allow read: if isDocOwner() || (isAuthenticated() && request.auth.uid in resource.data.collaborators);
       allow create: if isAuthenticated() && isValidNote(request.resource.data);
-      allow update: if isDocOwner() && isValidNote(request.resource.data);
+      allow update: if (isDocOwner() || (isAuthenticated() && request.auth.uid in resource.data.collaborators)) && isValidNote(request.resource.data);
       allow delete: if isDocOwner();
     }
 
     // Preferences rules
     match /preferences/{userId} {
       allow read, write: if isOwner(userId);
+    }
+
+    // Presence rules
+    match /presence/{userId} {
+      allow read: if isAuthenticated();
+      allow write: if isOwner(userId) && isValidPresence(request.resource.data);
     }
   }
 }

@@ -9,19 +9,31 @@ import {
   LogOut, 
   Sparkles,
   LayoutGrid,
-  Hash
+  Hash,
+  Network,
+  Layout,
+  Upload,
+  Zap,
+  Target,
+  Briefcase,
+  User as UserIcon,
+  BookOpen
 } from 'lucide-react';
 import { motion } from 'motion/react';
-import { useNoteStore } from '../store/useNoteStore';
+import { useNoteStore, useUserStore } from '../store/useNoteStore';
 import { cn } from '../lib/utils';
 
 interface SidebarProps {
   user: User;
   onLogout: () => void;
+  onOpenGraph: () => void;
+  onOpenKanban: () => void;
+  onOpenSmartCapture: () => void;
 }
 
-export function Sidebar({ user, onLogout }: SidebarProps) {
+export function Sidebar({ user, onLogout, onOpenGraph, onOpenKanban, onOpenSmartCapture }: SidebarProps) {
   const { addNote, setSelectedNoteId } = useNoteStore();
+  const { preferences, updatePreferences } = useUserStore();
 
   const handleNewNote = () => {
     addNote({ title: 'Nueva Nota', content: '' });
@@ -35,24 +47,78 @@ export function Sidebar({ user, onLogout }: SidebarProps) {
     { icon: Trash2, label: 'Papelera', id: 'trash' },
   ];
 
+  const focusModes = [
+    { id: 'none', label: 'Sin Filtro', icon: Zap },
+    { id: 'work', label: 'Trabajo', icon: Briefcase },
+    { id: 'study', label: 'Estudio', icon: BookOpen },
+    { id: 'personal', label: 'Personal', icon: UserIcon },
+  ];
+
   return (
     <aside className="w-64 flex flex-col bg-[#0a0a0a] border-r border-zinc-800/50 p-4">
       <div className="flex items-center space-x-3 px-2 mb-8">
         <div className="w-8 h-8 bg-orange-500 rounded-xl flex items-center justify-center">
           <Sparkles className="w-5 h-5 text-white" />
         </div>
-        <span className="text-xl font-bold tracking-tight">Cortexa</span>
+        <span className="text-xl font-bold tracking-tight text-white">Cortexa</span>
       </div>
 
       <button
         onClick={handleNewNote}
-        className="flex items-center space-x-3 w-full bg-orange-500 text-white font-semibold py-3 px-4 rounded-xl hover:bg-orange-600 transition-all mb-8 active:scale-95 shadow-lg shadow-orange-500/20"
+        className="flex items-center space-x-3 w-full bg-orange-500 text-white font-semibold py-3 px-4 rounded-xl hover:bg-orange-600 transition-all mb-6 active:scale-95 shadow-lg shadow-orange-500/20"
       >
         <Plus className="w-5 h-5" />
         <span>Nueva Nota</span>
       </button>
 
-      <nav className="flex-1 space-y-1">
+      <div className="space-y-1 mb-6">
+        <p className="px-3 text-[10px] font-bold text-zinc-600 uppercase tracking-widest mb-2">Módulos IA</p>
+        <button 
+          onClick={onOpenSmartCapture}
+          className="flex items-center space-x-3 w-full px-3 py-2 rounded-xl text-zinc-400 hover:text-white hover:bg-zinc-900 transition-all group"
+        >
+          <Upload className="w-4 h-4 text-indigo-500" />
+          <span className="text-sm font-medium">Smart Capture</span>
+        </button>
+        <button 
+          onClick={onOpenGraph}
+          className="flex items-center space-x-3 w-full px-3 py-2 rounded-xl text-zinc-400 hover:text-white hover:bg-zinc-900 transition-all group"
+        >
+          <Network className="w-4 h-4 text-blue-500" />
+          <span className="text-sm font-medium">Second Brain</span>
+        </button>
+        <button 
+          onClick={onOpenKanban}
+          className="flex items-center space-x-3 w-full px-3 py-2 rounded-xl text-zinc-400 hover:text-white hover:bg-zinc-900 transition-all group"
+        >
+          <Layout className="w-4 h-4 text-green-500" />
+          <span className="text-sm font-medium">Tablero Kanban</span>
+        </button>
+      </div>
+
+      <div className="space-y-1 mb-6">
+        <p className="px-3 text-[10px] font-bold text-zinc-600 uppercase tracking-widest mb-2">Focus Mode</p>
+        <div className="grid grid-cols-2 gap-1 px-2">
+          {focusModes.map(mode => (
+            <button
+              key={mode.id}
+              onClick={() => updatePreferences(user.uid, { focusMode: mode.id as any })}
+              className={cn(
+                "flex flex-col items-center justify-center p-2 rounded-xl border transition-all gap-1",
+                preferences?.focusMode === mode.id 
+                  ? "bg-orange-500/10 border-orange-500/50 text-orange-500" 
+                  : "bg-zinc-900/50 border-zinc-800 text-zinc-500 hover:border-zinc-700"
+              )}
+            >
+              <mode.icon size={14} />
+              <span className="text-[9px] font-bold">{mode.label}</span>
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <nav className="flex-1 space-y-1 overflow-y-auto custom-scrollbar">
+        <p className="px-3 text-[10px] font-bold text-zinc-600 uppercase tracking-widest mb-2">Biblioteca</p>
         {menuItems.map((item) => (
           <button
             key={item.id}
@@ -76,7 +142,7 @@ export function Sidebar({ user, onLogout }: SidebarProps) {
             referrerPolicy="no-referrer"
           />
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-medium truncate">{user.displayName}</p>
+            <p className="text-sm font-medium truncate text-white">{user.displayName}</p>
             <p className="text-xs text-zinc-500 truncate">{user.email}</p>
           </div>
         </div>

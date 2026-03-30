@@ -1,18 +1,42 @@
-import { Search, Star, Pin, Tag, Clock } from 'lucide-react';
+import { Search, Star, Pin, Tag, Clock, Sparkles, Target, Zap } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
-import { useNoteStore } from '../store/useNoteStore';
+import { useNoteStore, useUserStore } from '../store/useNoteStore';
 import { cn } from '../lib/utils';
 import { formatDistanceToNow } from 'date-fns';
 import { es } from 'date-fns/locale';
+import { generatePredictiveSuggestions } from '../services/aiService';
+import { useEffect, useState } from 'react';
 
 export function NoteList() {
   const { notes, searchQuery, setSearchQuery, selectedNoteId, setSelectedNoteId, loading } = useNoteStore();
+  const { preferences } = useUserStore();
+  const [suggestions, setSuggestions] = useState<string[]>([]);
 
-  const filteredNotes = notes.filter(note => 
-    note.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    note.content.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    note.tags.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase()))
-  );
+  useEffect(() => {
+    if (notes.length > 0 && preferences?.focusMode) {
+      const fetchSuggestions = async () => {
+        const context = preferences.focusMode === 'none' ? 'general' : preferences.focusMode;
+        const res = await generatePredictiveSuggestions(context, notes);
+        setSuggestions(res);
+      };
+      fetchSuggestions();
+    }
+  }, [notes, preferences?.focusMode]);
+
+  const filteredNotes = notes.filter(note => {
+    const matchesSearch = 
+      note.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      note.content.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      note.tags.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase()));
+    
+    const matchesFocus = 
+      !preferences?.focusMode || 
+      preferences.focusMode === 'none' || 
+      note.category === preferences.focusMode || 
+      note.tags.includes(preferences.focusMode);
+
+    return matchesSearch && matchesFocus;
+  });
 
   return (
     <div className="w-80 flex flex-col bg-[#0a0a0a] h-full">
@@ -27,6 +51,34 @@ export function NoteList() {
             className="w-full bg-zinc-900 border-none rounded-xl py-2.5 pl-10 pr-4 text-sm text-white placeholder:text-zinc-600 focus:ring-2 focus:ring-orange-500/50 transition-all"
           />
         </div>
+
+        {/* Predictive Suggestions */}
+        <AnimatePresence>
+          {suggestions.length > 0 && (
+            <motion.div 
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              exit={{ opacity: 0, height: 0 }}
+              className="space-y-2 overflow-hidden"
+            >
+              <p className="text-[10px] font-bold text-zinc-600 uppercase tracking-widest flex items-center gap-1">
+                <Zap size={10} className="text-orange-500" />
+                Memoria Predictiva
+              </p>
+              <div className="flex flex-wrap gap-2">
+                {suggestions.map((s, i) => (
+                  <button 
+                    key={i}
+                    onClick={() => setSearchQuery(s)}
+                    className="text-[10px] bg-orange-500/10 text-orange-500 border border-orange-500/20 px-2 py-1 rounded-lg hover:bg-orange-500/20 transition-all"
+                  >
+                    {s}
+                  </button>
+                ))}
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
 
       <div className="flex-1 overflow-y-auto px-2 space-y-1 custom-scrollbar">
@@ -63,15 +115,22 @@ export function NoteList() {
                 )}
                 
                 <div className="space-y-2">
-                  <h3 className={cn(
-                    "font-semibold truncate pr-6",
-                    selectedNoteId === note.id ? "text-white" : "text-zinc-300"
-                  )}>
-                    {note.title || 'Sin título'}
-                  </h3>
+                  <div className="flex items-center gap-2">
+                    {note.category && (
+                      <span className="text-[8px] font-bold uppercase tracking-tighter bg-zinc-800 text-zinc-500 px-1 rounded">
+                        {note.category}
+                      </span>
+                    )}
+                    <h3 className={cn(
+                      "font-semibold truncate pr-6",
+                      selectedNoteId === note.id ? "text-white" : "text-zinc-300"
+                    )}>
+                      {note.title || 'Sin título'}
+                    </h3>
+                  </div>
                   
                   <p className="text-xs text-zinc-500 line-clamp-2 leading-relaxed">
-                    {note.content || 'Sin contenido...'}
+                    {note.summary || note.content || 'Sin contenido...'}
                   </p>
 
                   <div className="flex items-center justify-between pt-1">

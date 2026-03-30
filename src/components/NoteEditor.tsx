@@ -12,24 +12,34 @@ import {
   History,
   Share2,
   X,
-  Loader2
+  Loader2,
+  CheckSquare,
+  Link as LinkIcon,
+  Wand2,
+  Languages,
+  ListTodo,
+  Type as TypeIcon
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
-import { useNoteStore } from '../store/useNoteStore';
-import { summarizeNote, suggestTags } from '../services/aiService';
+import { useNoteStore, useUserStore } from '../store/useNoteStore';
+import { summarizeNote, suggestTags, rewriteContent, extractTasks, suggestConnections } from '../services/aiService';
 import { cn } from '../lib/utils';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import ReactMarkdown from 'react-markdown';
 
 export function NoteEditor() {
-  const { notes, selectedNoteId, updateNote, deleteNote, setSelectedNoteId } = useNoteStore();
+  const { notes, selectedNoteId, updateNote, deleteNote, setSelectedNoteId, toggleTask, removeTask, addTask } = useNoteStore();
+  const { preferences } = useUserStore();
   const note = notes.find(n => n.id === selectedNoteId);
   
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
   const [isSummarizing, setIsSummarizing] = useState(false);
   const [isSuggestingTags, setIsSuggestingTags] = useState(false);
+  const [isRewriting, setIsRewriting] = useState(false);
+  const [isExtractingTasks, setIsExtractingTasks] = useState(false);
+  const [isSuggestingLinks, setIsSuggestingLinks] = useState(false);
   const [isPreview, setIsPreview] = useState(false);
 
   useEffect(() => {
@@ -69,6 +79,33 @@ export function NoteEditor() {
     const newTags = Array.from(new Set([...note.tags, ...suggested]));
     await updateNote(note.id, { tags: newTags });
     setIsSuggestingTags(false);
+  };
+
+  const handleRewrite = async (instruction: string) => {
+    if (!note) return;
+    setIsRewriting(true);
+    const rewritten = await rewriteContent(content, instruction);
+    setContent(rewritten);
+    await updateNote(note.id, { content: rewritten });
+    setIsRewriting(false);
+  };
+
+  const handleExtractTasks = async () => {
+    if (!note) return;
+    setIsExtractingTasks(true);
+    const tasks = await extractTasks(content);
+    for (const task of tasks) {
+      await addTask(note.id, task);
+    }
+    setIsExtractingTasks(false);
+  };
+
+  const handleSuggestLinks = async () => {
+    if (!note) return;
+    setIsSuggestingLinks(true);
+    const connections = await suggestConnections(note, notes);
+    await updateNote(note.id, { forwardLinks: connections });
+    setIsSuggestingLinks(false);
   };
 
   const handleExport = () => {
@@ -118,6 +155,34 @@ export function NoteEditor() {
         </div>
 
         <div className="flex items-center space-x-2">
+          {/* AI Copilot Quick Actions */}
+          <div className="flex items-center bg-zinc-900 rounded-xl p-1 mr-2 border border-zinc-800">
+            <button 
+              onClick={() => handleRewrite('Mejora la claridad y el tono')}
+              disabled={isRewriting}
+              title="Mejorar Claridad"
+              className="p-1.5 hover:bg-zinc-800 rounded-lg text-zinc-400 hover:text-orange-500 transition-all disabled:opacity-50"
+            >
+              <Wand2 size={16} />
+            </button>
+            <button 
+              onClick={() => handleRewrite('Traduce al inglés')}
+              disabled={isRewriting}
+              title="Traducir al Inglés"
+              className="p-1.5 hover:bg-zinc-800 rounded-lg text-zinc-400 hover:text-orange-500 transition-all disabled:opacity-50"
+            >
+              <Languages size={16} />
+            </button>
+            <button 
+              onClick={handleExtractTasks}
+              disabled={isExtractingTasks}
+              title="Extraer Tareas"
+              className="p-1.5 hover:bg-zinc-800 rounded-lg text-zinc-400 hover:text-orange-500 transition-all disabled:opacity-50"
+            >
+              <ListTodo size={16} />
+            </button>
+          </div>
+
           <button 
             onClick={() => setIsPreview(!isPreview)}
             className={cn(
@@ -215,7 +280,7 @@ export function NoteEditor() {
             </button>
           </div>
 
-          <div className="min-h-[500px]">
+          <div className="min-h-[400px]">
             {isPreview ? (
               <div className="prose prose-invert prose-orange max-w-none">
                 <ReactMarkdown>{content}</ReactMarkdown>
@@ -225,9 +290,89 @@ export function NoteEditor() {
                 value={content}
                 onChange={(e) => setContent(e.target.value)}
                 placeholder="Comienza a escribir tus pensamientos... (Soporta Markdown)"
-                className="w-full h-full min-h-[500px] bg-transparent border-none text-zinc-400 text-lg leading-relaxed placeholder:text-zinc-800 focus:ring-0 p-0 resize-none"
+                className="w-full h-full min-h-[400px] bg-transparent border-none text-zinc-400 text-lg leading-relaxed placeholder:text-zinc-800 focus:ring-0 p-0 resize-none"
               />
             )}
+          </div>
+
+          {/* Tasks Section */}
+          {note.tasks && note.tasks.length > 0 && (
+            <div className="pt-8 border-t border-zinc-800/50">
+              <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+                <CheckSquare size={20} className="text-orange-500" />
+                Tareas Pendientes
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {note.tasks.map(task => (
+                  <div 
+                    key={task.id}
+                    className={cn(
+                      "flex items-center justify-between p-3 rounded-xl border transition-all",
+                      task.completed ? "bg-zinc-900/50 border-zinc-800 opacity-50" : "bg-zinc-900 border-zinc-800 hover:border-orange-500/50"
+                    )}
+                  >
+                    <div className="flex items-center gap-3">
+                      <button 
+                        onClick={() => toggleTask(note.id, task.id)}
+                        className={cn(
+                          "w-5 h-5 rounded border flex items-center justify-center transition-all",
+                          task.completed ? "bg-orange-500 border-orange-500 text-white" : "border-zinc-700 text-transparent"
+                        )}
+                      >
+                        <CheckSquare size={14} />
+                      </button>
+                      <span className={cn("text-sm", task.completed ? "line-through text-zinc-500" : "text-zinc-300")}>
+                        {task.text}
+                      </span>
+                    </div>
+                    <button 
+                      onClick={() => removeTask(note.id, task.id)}
+                      className="text-zinc-600 hover:text-red-500 p-1"
+                    >
+                      <X size={14} />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Backlinks Section */}
+          <div className="pt-8 border-t border-zinc-800/50">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold text-white flex items-center gap-2">
+                <LinkIcon size={20} className="text-orange-500" />
+                Conexiones Inteligentes
+              </h3>
+              <button 
+                onClick={handleSuggestLinks}
+                disabled={isSuggestingLinks}
+                className="text-xs text-orange-500 hover:underline flex items-center gap-1"
+              >
+                {isSuggestingLinks ? <Loader2 size={12} className="animate-spin" /> : <Sparkles size={12} />}
+                Actualizar conexiones
+              </button>
+            </div>
+            <div className="flex flex-wrap gap-3">
+              {note.forwardLinks && note.forwardLinks.length > 0 ? (
+                note.forwardLinks.map(linkId => {
+                  const linkedNote = notes.find(n => n.id === linkId);
+                  if (!linkedNote) return null;
+                  return (
+                    <button
+                      key={linkId}
+                      onClick={() => setSelectedNoteId(linkId)}
+                      className="flex items-center gap-2 bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 px-3 py-2 rounded-xl text-xs text-zinc-400 transition-all"
+                    >
+                      <TypeIcon size={14} />
+                      {linkedNote.title}
+                    </button>
+                  );
+                })
+              ) : (
+                <p className="text-xs text-zinc-600 italic">No hay conexiones automáticas aún.</p>
+              )}
+            </div>
           </div>
         </div>
       </div>

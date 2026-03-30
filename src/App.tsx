@@ -1,11 +1,14 @@
 import { useEffect, useState } from 'react';
 import { onAuthStateChanged, User } from 'firebase/auth';
 import { auth, loginWithGoogle, logout } from './firebase';
-import { useNoteStore } from './store/useNoteStore';
+import { useNoteStore, useUserStore } from './store/useNoteStore';
 import { Sidebar } from './components/Sidebar';
 import { NoteList } from './components/NoteList';
 import { NoteEditor } from './components/NoteEditor';
 import { AIAssistant } from './components/AIAssistant';
+import { GraphView } from './components/GraphView';
+import { KanbanView } from './components/KanbanView';
+import { SmartCapture } from './components/SmartCapture';
 import { LogIn, Loader2, Sparkles } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 
@@ -13,6 +16,11 @@ export default function App() {
   const [user, setUser] = useState<User | null>(null);
   const [authLoading, setAuthLoading] = useState(true);
   const { fetchNotes, selectedNoteId } = useNoteStore();
+  const { fetchPreferences, updatePresence, fetchPresences } = useUserStore();
+
+  const [showGraph, setShowGraph] = useState(false);
+  const [showKanban, setShowKanban] = useState(false);
+  const [showSmartCapture, setShowSmartCapture] = useState(false);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
@@ -24,10 +32,30 @@ export default function App() {
 
   useEffect(() => {
     if (user) {
-      const unsubscribe = fetchNotes(user.uid);
-      return () => unsubscribe();
+      const unsubNotes = fetchNotes(user.uid);
+      const unsubPrefs = fetchPreferences(user.uid);
+      const unsubPresences = fetchPresences();
+      
+      // Update presence
+      updatePresence(user.uid, {
+        userName: user.displayName || 'Usuario',
+        userPhoto: user.photoURL || undefined
+      });
+
+      const presenceInterval = setInterval(() => {
+        updatePresence(user.uid, {
+          activeNoteId: selectedNoteId || undefined
+        });
+      }, 30000);
+
+      return () => {
+        unsubNotes();
+        unsubPrefs();
+        unsubPresences();
+        clearInterval(presenceInterval);
+      };
     }
-  }, [user, fetchNotes]);
+  }, [user, fetchNotes, fetchPreferences, fetchPresences, updatePresence, selectedNoteId]);
 
   if (authLoading) {
     return (
@@ -78,7 +106,13 @@ export default function App() {
 
   return (
     <div className="flex h-screen bg-[#0a0a0a] text-white overflow-hidden font-sans selection:bg-orange-500/30">
-      <Sidebar user={user} onLogout={logout} />
+      <Sidebar 
+        user={user} 
+        onLogout={logout} 
+        onOpenGraph={() => setShowGraph(true)}
+        onOpenKanban={() => setShowKanban(true)}
+        onOpenSmartCapture={() => setShowSmartCapture(true)}
+      />
       
       <main className="flex-1 flex overflow-hidden relative">
         <NoteList />
@@ -106,6 +140,12 @@ export default function App() {
 
         <AIAssistant />
       </main>
+
+      <AnimatePresence>
+        {showGraph && <GraphView onClose={() => setShowGraph(false)} />}
+        {showKanban && <KanbanView onClose={() => setShowKanban(false)} />}
+        {showSmartCapture && <SmartCapture onClose={() => setShowSmartCapture(false)} />}
+      </AnimatePresence>
     </div>
   );
 }

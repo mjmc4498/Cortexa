@@ -16,9 +16,28 @@
         "isDeleted": { "type": "boolean", "description": "Whether the note is in the trash." },
         "createdAt": { "type": "string", "format": "date-time", "description": "Timestamp when the note was created." },
         "updatedAt": { "type": "string", "format": "date-time", "description": "Timestamp when the note was last updated." },
-        "summary": { "type": "string", "description": "AI-generated summary of the note content." }
+        "summary": { "type": "string", "description": "AI-generated summary of the note content." },
+        "category": { "type": "string", "enum": ["work", "study", "personal", "none"], "description": "Note category." },
+        "backlinks": { "type": "array", "items": { "type": "string" }, "description": "IDs of notes that link to this note." },
+        "forwardLinks": { "type": "array", "items": { "type": "string" }, "description": "IDs of notes that this note links to." },
+        "tasks": { "type": "array", "items": { "$ref": "Task" }, "description": "List of tasks within the note." },
+        "collaborators": { "type": "array", "items": { "type": "string" }, "description": "User IDs of collaborators." },
+        "lastEditor": { "type": "string", "description": "User ID of the last editor." },
+        "version": { "type": "number", "description": "Note version number." }
       },
       "required": ["userId", "title", "content", "createdAt", "updatedAt"]
+    },
+    "Task": {
+      "title": "Task",
+      "description": "A task item within a note.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "text": { "type": "string" },
+        "completed": { "type": "boolean" },
+        "dueDate": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "text", "completed"]
     },
     "UserPreferences": {
       "title": "UserPreferences",
@@ -27,9 +46,25 @@
       "properties": {
         "userId": { "type": "string", "description": "ID of the user." },
         "theme": { "type": "string", "enum": ["light", "dark", "system"], "description": "Preferred UI theme." },
-        "lastActiveNoteId": { "type": "string", "description": "ID of the last opened note." }
+        "lastActiveNoteId": { "type": "string", "description": "ID of the last opened note." },
+        "language": { "type": "string", "description": "Preferred language." },
+        "focusMode": { "type": "string", "enum": ["work", "study", "personal", "none"], "description": "Current focus mode." },
+        "sidebarCollapsed": { "type": "boolean", "description": "Whether the sidebar is collapsed." }
       },
       "required": ["userId"]
+    },
+    "Presence": {
+      "title": "Presence",
+      "description": "Real-time user presence information.",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "userName": { "type": "string" },
+        "userPhoto": { "type": "string" },
+        "lastActive": { "type": "string", "format": "date-time" },
+        "activeNoteId": { "type": "string" }
+      },
+      "required": ["userId", "lastActive"]
     }
   },
   "firestore": {
@@ -40,6 +75,10 @@
     "/preferences/{userId}": {
       "schema": "UserPreferences",
       "description": "User settings and preferences."
+    },
+    "/presence/{userId}": {
+      "schema": "Presence",
+      "description": "Real-time presence data."
     }
   }
 }
