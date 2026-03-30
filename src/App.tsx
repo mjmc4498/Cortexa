@@ -1,16 +1,17 @@
 import { useEffect, useState } from 'react';
 import { onAuthStateChanged, User } from 'firebase/auth';
 import { auth, loginWithGoogle, logout } from './firebase';
-import { useNoteStore, useUserStore } from './store/useNoteStore';
-import { Sidebar } from './components/Sidebar';
-import { NoteList } from './components/NoteList';
-import { NoteEditor } from './components/NoteEditor';
-import { AIAssistant } from './components/AIAssistant';
-import { GraphView } from './components/GraphView';
-import { KanbanView } from './components/KanbanView';
-import { SmartCapture } from './components/SmartCapture';
-import { TimelineView } from './components/TimelineView';
-import { WorkspaceView } from './components/WorkspaceView';
+import { useNoteStore, useUserStore } from './models/store/useNoteStore';
+import { Sidebar } from './views/components/Sidebar';
+import { NoteList } from './views/components/NoteList';
+import { NoteEditor } from './views/components/NoteEditor';
+import { AIAssistant } from './views/components/AIAssistant';
+import { GraphView } from './views/components/GraphView';
+import { KanbanView } from './views/components/KanbanView';
+import { SmartCapture } from './views/components/SmartCapture';
+import { TimelineView } from './views/components/TimelineView';
+import { WorkspaceView } from './views/components/WorkspaceView';
+import { ErrorBoundary } from './views/components/ErrorBoundary';
 import { LogIn, Loader2, Sparkles, Layout, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { cn } from './lib/utils';
@@ -112,104 +113,106 @@ export default function App() {
   }
 
   return (
-    <div className="flex h-screen bg-[#0a0a0a] text-white overflow-hidden font-sans selection:bg-orange-500/30 relative">
-      {/* Mobile Sidebar Overlay */}
-      <AnimatePresence>
-        {isSidebarOpen && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            onClick={() => setIsSidebarOpen(false)}
-            className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 lg:hidden"
-          />
-        )}
-      </AnimatePresence>
-
-      <div className={cn(
-        "fixed inset-y-0 left-0 z-50 transform lg:relative lg:translate-x-0 transition-transform duration-300 ease-in-out",
-        isSidebarOpen ? "translate-x-0" : "-translate-x-full"
-      )}>
-        <Sidebar 
-          user={user} 
-          onLogout={logout} 
-          onOpenGraph={() => { setShowGraph(true); setIsSidebarOpen(false); }}
-          onOpenKanban={() => { setShowKanban(true); setIsSidebarOpen(false); }}
-          onOpenSmartCapture={() => { setShowSmartCapture(true); setIsSidebarOpen(false); }}
-          onOpenTimeline={() => { setShowTimeline(true); setIsSidebarOpen(false); }}
-          onOpenWorkspace={() => { setShowWorkspace(true); setIsSidebarOpen(false); }}
-          onCloseMobile={() => setIsSidebarOpen(false)}
-        />
-      </div>
-      
-      <main className="flex-1 flex flex-col lg:flex-row overflow-hidden relative">
-        {/* Mobile Header */}
-        <div className="lg:hidden flex items-center justify-between p-4 border-b border-zinc-800 bg-[#0a0a0a]">
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-orange-500 rounded-lg flex items-center justify-center">
-              <Sparkles className="w-5 h-5 text-white" />
-            </div>
-            <span className="font-bold">Cortexa</span>
-          </div>
-          <button 
-            onClick={() => setIsSidebarOpen(true)}
-            className="p-2 hover:bg-zinc-900 rounded-lg"
-          >
-            <Layout className="w-6 h-6" />
-          </button>
-        </div>
+    <ErrorBoundary>
+      <div className="flex h-screen bg-[#0a0a0a] text-white overflow-hidden font-sans selection:bg-orange-500/30 relative">
+        {/* Mobile Sidebar Overlay */}
+        <AnimatePresence>
+          {isSidebarOpen && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setIsSidebarOpen(false)}
+              className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 lg:hidden"
+            />
+          )}
+        </AnimatePresence>
 
         <div className={cn(
-          "w-full lg:w-80 flex-shrink-0 border-r border-zinc-800/50",
-          selectedNoteId && "hidden lg:flex"
+          "fixed inset-y-0 left-0 z-50 transform lg:relative lg:translate-x-0 transition-transform duration-300 ease-in-out",
+          isSidebarOpen ? "translate-x-0" : "-translate-x-full"
         )}>
-          <NoteList />
+          <Sidebar 
+            user={user} 
+            onLogout={logout} 
+            onOpenGraph={() => { setShowGraph(true); setIsSidebarOpen(false); }}
+            onOpenKanban={() => { setShowKanban(true); setIsSidebarOpen(false); }}
+            onOpenSmartCapture={() => { setShowSmartCapture(true); setIsSidebarOpen(false); }}
+            onOpenTimeline={() => { setShowTimeline(true); setIsSidebarOpen(false); }}
+            onOpenWorkspace={() => { setShowWorkspace(true); setIsSidebarOpen(false); }}
+            onCloseMobile={() => setIsSidebarOpen(false)}
+          />
         </div>
         
-        <div className={cn(
-          "flex-1 flex flex-col min-w-0 bg-[#0f0f0f] border-l border-zinc-800/50",
-          !selectedNoteId && "hidden lg:flex"
-        )}>
-          <AnimatePresence mode="wait">
-            {selectedNoteId ? (
-              <div className="flex-1 flex flex-col h-full relative">
-                <button 
-                  onClick={() => setSelectedNoteId(null)}
-                  className="lg:hidden absolute top-4 left-4 z-20 p-2 bg-zinc-900 rounded-full border border-zinc-800"
-                >
-                  <X className="w-5 h-5" />
-                </button>
-                <NoteEditor key={selectedNoteId} />
+        <main className="flex-1 flex flex-col lg:flex-row overflow-hidden relative">
+          {/* Mobile Header */}
+          <div className="lg:hidden flex items-center justify-between p-4 border-b border-zinc-800 bg-[#0a0a0a]">
+            <div className="flex items-center gap-2">
+              <div className="w-8 h-8 bg-orange-500 rounded-lg flex items-center justify-center">
+                <Sparkles className="w-5 h-5 text-white" />
               </div>
-            ) : (
-              <motion.div 
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                className="flex-1 flex flex-col items-center justify-center text-zinc-500 space-y-4"
-              >
-                <div className="w-16 h-16 rounded-full bg-zinc-900 flex items-center justify-center">
-                  <Sparkles className="w-8 h-8 opacity-20" />
+              <span className="font-bold">Cortexa</span>
+            </div>
+            <button 
+              onClick={() => setIsSidebarOpen(true)}
+              className="p-2 hover:bg-zinc-900 rounded-lg"
+            >
+              <Layout className="w-6 h-6" />
+            </button>
+          </div>
+
+          <div className={cn(
+            "w-full lg:w-80 flex-shrink-0 border-r border-zinc-800/50",
+            selectedNoteId && "hidden lg:flex"
+          )}>
+            <NoteList />
+          </div>
+          
+          <div className={cn(
+            "flex-1 flex flex-col min-w-0 bg-[#0f0f0f] border-l border-zinc-800/50",
+            !selectedNoteId && "hidden lg:flex"
+          )}>
+            <AnimatePresence mode="wait">
+              {selectedNoteId ? (
+                <div className="flex-1 flex flex-col h-full relative">
+                  <button 
+                    onClick={() => setSelectedNoteId(null)}
+                    className="lg:hidden absolute top-4 left-4 z-20 p-2 bg-zinc-900 rounded-full border border-zinc-800"
+                  >
+                    <X className="w-5 h-5" />
+                  </button>
+                  <NoteEditor key={selectedNoteId} />
                 </div>
-                <p className="text-lg font-medium">Selecciona una nota para empezar a editar</p>
-                <p className="text-sm opacity-60">O crea una nueva desde la barra lateral</p>
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </div>
+              ) : (
+                <motion.div 
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  className="flex-1 flex flex-col items-center justify-center text-zinc-500 space-y-4"
+                >
+                  <div className="w-16 h-16 rounded-full bg-zinc-900 flex items-center justify-center">
+                    <Sparkles className="w-8 h-8 opacity-20" />
+                  </div>
+                  <p className="text-lg font-medium">Selecciona una nota para empezar a editar</p>
+                  <p className="text-sm opacity-60">O crea una nueva desde la barra lateral</p>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
 
-        <div className="hidden xl:block">
-          <AIAssistant />
-        </div>
-      </main>
+          <div className="hidden xl:block">
+            <AIAssistant />
+          </div>
+        </main>
 
-      <AnimatePresence>
-        {showGraph && <GraphView onClose={() => setShowGraph(false)} />}
-        {showKanban && <KanbanView onClose={() => setShowKanban(false)} />}
-        {showSmartCapture && <SmartCapture onClose={() => setShowSmartCapture(false)} />}
-        {showTimeline && <TimelineView onClose={() => setShowTimeline(false)} />}
-        {showWorkspace && <WorkspaceView onClose={() => setShowWorkspace(false)} />}
-      </AnimatePresence>
-    </div>
+        <AnimatePresence>
+          {showGraph && <GraphView onClose={() => setShowGraph(false)} />}
+          {showKanban && <KanbanView onClose={() => setShowKanban(false)} />}
+          {showSmartCapture && <SmartCapture onClose={() => setShowSmartCapture(false)} />}
+          {showTimeline && <TimelineView onClose={() => setShowTimeline(false)} />}
+          {showWorkspace && <WorkspaceView onClose={() => setShowWorkspace(false)} />}
+        </AnimatePresence>
+      </div>
+    </ErrorBoundary>
   );
 }

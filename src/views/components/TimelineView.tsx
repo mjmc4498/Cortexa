@@ -1,5 +1,5 @@
 import React from 'react';
-import { useNoteStore } from '../store/useNoteStore';
+import { useNoteStore } from '../../models/store/useNoteStore';
 import { motion } from 'framer-motion';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';

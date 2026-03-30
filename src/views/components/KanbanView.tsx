@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
-import { useNoteStore } from '../store/useNoteStore';
-import { Note } from '../types';
+import { useNoteStore } from '../../models/store/useNoteStore';
+import { Note } from '../../models/types';
 import { Plus, MoreVertical, Star, Pin, Trash2, Archive, X, Layout, List, Calendar, Map, Maximize2, Minimize2 } from 'lucide-react';
 import { motion, AnimatePresence, Reorder } from 'motion/react';
 import { format } from 'date-fns';

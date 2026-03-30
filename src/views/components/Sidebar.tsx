@@ -22,8 +22,8 @@ import {
   X
 } from 'lucide-react';
 import { motion } from 'motion/react';
-import { useNoteStore, useUserStore } from '../store/useNoteStore';
-import { cn } from '../lib/utils';
+import { useNoteStore, useUserStore } from '../../models/store/useNoteStore';
+import { cn } from '../../lib/utils';
 
 interface SidebarProps {
   user: User;

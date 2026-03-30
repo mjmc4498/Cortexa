@@ -1,12 +1,12 @@
 import { Search, Star, Pin, Tag, Clock, Sparkles, Target, Zap, BrainCircuit } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
-import { useNoteStore, useUserStore } from '../store/useNoteStore';
-import { cn } from '../lib/utils';
+import { useNoteStore, useUserStore } from '../../models/store/useNoteStore';
+import { cn } from '../../lib/utils';
 import { formatDistanceToNow } from 'date-fns';
 import { es } from 'date-fns/locale';
-import { generatePredictiveSuggestions } from '../services/aiService';
+import { generatePredictiveSuggestions } from '../../controllers/services/aiService';
 import { useEffect, useState } from 'react';
-import { Note } from '../types';
+import { Note } from '../../models/types';
 
 export function NoteList() {
   const { 

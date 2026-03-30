@@ -24,9 +24,9 @@ import {
   ChevronLeft
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
-import { useNoteStore, useUserStore } from '../store/useNoteStore';
-import { summarizeNote, suggestTags, rewriteContent, extractTasks, suggestConnections } from '../services/aiService';
-import { cn } from '../lib/utils';
+import { useNoteStore, useUserStore } from '../../models/store/useNoteStore';
+import { summarizeNote, suggestTags, rewriteContent, extractTasks, suggestConnections } from '../../controllers/services/aiService';
+import { cn } from '../../lib/utils';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import ReactMarkdown from 'react-markdown';
@@ -388,7 +388,7 @@ export function NoteEditor() {
                 disabled={isSuggestingLinks}
                 className="text-xs text-orange-500 hover:underline flex items-center gap-1"
               >
-                {isSuggestingLinks ? <Loader2 size={12} className="animate-spin" /> : <Sparkles size={12} />}
+                {isSuggestingLinks ? <Loader2 className="w-12 h-12 animate-spin" /> : <Sparkles size={12} />}
                 Actualizar conexiones
               </button>
             </div>

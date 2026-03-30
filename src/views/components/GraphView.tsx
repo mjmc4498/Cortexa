@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import * as d3 from 'd3';
-import { useNoteStore } from '../store/useNoteStore';
-import { Note } from '../types';
+import { useNoteStore } from '../../models/store/useNoteStore';
+import { Note } from '../../models/types';
 import { X, Maximize2, Minimize2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 

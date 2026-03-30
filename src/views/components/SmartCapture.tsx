@@ -1,8 +1,8 @@
 import React, { useState, useCallback } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { Mic, Image as ImageIcon, FileText, Link as LinkIcon, Upload, Loader2, X, CheckCircle2 } from 'lucide-react';
-import { processMultimodalCapture } from '../services/aiService';
-import { useNoteStore } from '../store/useNoteStore';
+import { processMultimodalCapture } from '../../controllers/services/aiService';
+import { useNoteStore } from '../../models/store/useNoteStore';
 import { motion, AnimatePresence } from 'motion/react';
 
 export const SmartCapture: React.FC<{ onClose: () => void }> = ({ onClose }) => {

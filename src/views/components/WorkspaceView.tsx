@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNoteStore, useUserStore } from '../store/useNoteStore';
+import { useNoteStore, useUserStore } from '../../models/store/useNoteStore';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Layout, 
@@ -17,7 +17,7 @@ import {
   MapPin,
   FileText
 } from 'lucide-react';
-import { generateWeeklyReport, detectContextualNotes } from '../services/aiService';
+import { generateWeeklyReport, detectContextualNotes } from '../../controllers/services/aiService';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 

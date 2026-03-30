@@ -14,8 +14,8 @@ import {
   serverTimestamp,
   getDoc
 } from 'firebase/firestore';
-import { db, auth } from '../firebase';
-import { generateEmbedding, semanticSearch } from '../services/aiService';
+import { db, auth } from '../../firebase';
+import { generateEmbedding, semanticSearch } from '../../controllers/services/aiService';
 
 interface NoteState {
   notes: Note[];

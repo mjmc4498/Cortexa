@@ -11,10 +11,10 @@ import {
   ChevronLeft
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
-import { useNoteStore } from '../store/useNoteStore';
-import { askAboutNotes } from '../services/aiService';
-import { ChatMessage } from '../types';
-import { cn } from '../lib/utils';
+import { useNoteStore } from '../../models/store/useNoteStore';
+import { askAboutNotes } from '../../controllers/services/aiService';
+import { ChatMessage } from '../../models/types';
+import { cn } from '../../lib/utils';
 
 export function AIAssistant() {
   const [isOpen, setIsOpen] = useState(false);
