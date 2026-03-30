@@ -18,7 +18,9 @@ import {
   Wand2,
   Languages,
   ListTodo,
-  Type as TypeIcon
+  Type as TypeIcon,
+  Target,
+  Briefcase
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { useNoteStore, useUserStore } from '../store/useNoteStore';
@@ -294,6 +296,36 @@ export function NoteEditor() {
               />
             )}
           </div>
+
+          {/* Contextual Metadata Section */}
+          {note.metadata && (
+            <div className="pt-8 border-t border-zinc-800/50">
+              <h3 className="text-sm font-bold uppercase tracking-widest text-zinc-600 mb-4 flex items-center gap-2">
+                <Target size={16} />
+                Contexto de Captura
+              </h3>
+              <div className="flex flex-wrap gap-4">
+                {note.metadata.location && (
+                  <div className="flex items-center gap-2 bg-zinc-900/50 px-3 py-2 rounded-xl border border-zinc-800">
+                    <Clock size={14} className="text-orange-500" />
+                    <span className="text-xs text-zinc-400">{note.metadata.location.name || 'Ubicación guardada'}</span>
+                  </div>
+                )}
+                {note.metadata.source && (
+                  <div className="flex items-center gap-2 bg-zinc-900/50 px-3 py-2 rounded-xl border border-zinc-800">
+                    <Sparkles size={14} className="text-indigo-500" />
+                    <span className="text-xs text-zinc-400 uppercase font-bold tracking-tighter">Fuente: {note.metadata.source}</span>
+                  </div>
+                )}
+                {note.metadata.context && (
+                  <div className="flex items-center gap-2 bg-zinc-900/50 px-3 py-2 rounded-xl border border-zinc-800">
+                    <Briefcase size={14} className="text-green-500" />
+                    <span className="text-xs text-zinc-400">{note.metadata.context}</span>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
 
           {/* Tasks Section */}
           {note.tasks && note.tasks.length > 0 && (

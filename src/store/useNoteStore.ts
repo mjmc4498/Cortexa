@@ -15,13 +15,16 @@ import {
   getDoc
 } from 'firebase/firestore';
 import { db, auth } from '../firebase';
+import { generateEmbedding, semanticSearch } from '../services/aiService';
 
 interface NoteState {
   notes: Note[];
   loading: boolean;
   searchQuery: string;
+  isSemanticSearch: boolean;
   selectedNoteId: string | null;
   setSearchQuery: (query: string) => void;
+  setSemanticSearch: (enabled: boolean) => void;
   setSelectedNoteId: (id: string | null) => void;
   fetchNotes: (userId: string) => () => void;
   addNote: (note: Partial<Note>) => Promise<string | undefined>;
@@ -30,15 +33,28 @@ interface NoteState {
   addTask: (noteId: string, task: Partial<Task>) => Promise<void>;
   toggleTask: (noteId: string, taskId: string) => Promise<void>;
   removeTask: (noteId: string, taskId: string) => Promise<void>;
+  performSemanticSearch: (query: string) => Promise<Note[]>;
 }
+
+const cleanObject = (obj: any) => {
+  const newObj = { ...obj };
+  Object.keys(newObj).forEach(key => {
+    if (newObj[key] === undefined) {
+      delete newObj[key];
+    }
+  });
+  return newObj;
+};
 
 export const useNoteStore = create<NoteState>((set, get) => ({
   notes: [],
   loading: true,
   searchQuery: '',
+  isSemanticSearch: false,
   selectedNoteId: null,
 
   setSearchQuery: (query) => set({ searchQuery: query }),
+  setSemanticSearch: (enabled) => set({ isSemanticSearch: enabled }),
   setSelectedNoteId: (id) => set({ selectedNoteId: id }),
 
   fetchNotes: (userId) => {
@@ -68,7 +84,10 @@ export const useNoteStore = create<NoteState>((set, get) => ({
     const userId = auth.currentUser?.uid;
     if (!userId) return;
 
-    const newNote = {
+    // Generate embedding for semantic search
+    const embedding = await generateEmbedding(`${note.title || ''} ${note.content || ''}`);
+
+    const newNote = cleanObject({
       ...note,
       userId,
       title: note.title || 'Sin título',
@@ -83,7 +102,8 @@ export const useNoteStore = create<NoteState>((set, get) => ({
       tasks: note.tasks || [],
       backlinks: [],
       forwardLinks: [],
-    };
+      embedding,
+    });
 
     try {
       const docRef = await addDoc(collection(db, 'notes'), newNote);
@@ -96,10 +116,19 @@ export const useNoteStore = create<NoteState>((set, get) => ({
   updateNote: async (id, updates) => {
     try {
       const noteRef = doc(db, 'notes', id);
-      await updateDoc(noteRef, {
+      
+      // If title or content changed, regenerate embedding
+      if (updates.title !== undefined || updates.content !== undefined) {
+        const currentNote = get().notes.find(n => n.id === id);
+        const newTitle = updates.title !== undefined ? updates.title : currentNote?.title || '';
+        const newContent = updates.content !== undefined ? updates.content : currentNote?.content || '';
+        updates.embedding = await generateEmbedding(`${newTitle} ${newContent}`);
+      }
+
+      await updateDoc(noteRef, cleanObject({
         ...updates,
         updatedAt: new Date().toISOString(),
-      });
+      }));
     } catch (error) {
       console.error("Error updating note:", error);
     }
@@ -146,6 +175,10 @@ export const useNoteStore = create<NoteState>((set, get) => ({
     const tasks = (note.tasks || []).filter(t => t.id !== taskId);
     await get().updateNote(noteId, { tasks });
   },
+
+  performSemanticSearch: async (query) => {
+    return await semanticSearch(query, get().notes);
+  },
 }));
 
 interface UserState {
@@ -184,16 +217,16 @@ export const useUserStore = create<UserState>((set, get) => ({
 
   updatePreferences: async (userId, updates) => {
     const prefRef = doc(db, 'preferences', userId);
-    await updateDoc(prefRef, updates);
+    await updateDoc(prefRef, cleanObject(updates));
   },
 
   updatePresence: async (userId, presence) => {
     const presenceRef = doc(db, 'presence', userId);
-    await setDoc(presenceRef, {
+    await setDoc(presenceRef, cleanObject({
       ...presence,
       userId,
       lastActive: new Date().toISOString(),
-    }, { merge: true });
+    }), { merge: true });
   },
 
   fetchPresences: () => {

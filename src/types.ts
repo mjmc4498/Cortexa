@@ -20,12 +20,27 @@ export interface Note {
   createdAt: string;
   updatedAt: string;
   summary?: string;
+  embedding?: number[]; // For semantic search
   backlinks?: string[]; // IDs of notes that link to this one
   forwardLinks?: string[]; // IDs of notes this one links to
   tasks?: Task[];
   collaborators?: string[]; // User IDs with access
   lastEditor?: string;
   version?: number;
+  metadata?: {
+    location?: { lat: number; lng: number; name?: string };
+    source?: 'web' | 'mobile' | 'voice' | 'image';
+    context?: string; // e.g., "Meeting", "Travel", "Study"
+  };
+}
+
+export interface AgentConfig {
+  id: string;
+  name: string;
+  type: 'organizer' | 'reporter' | 'cleaner' | 'task-extractor';
+  enabled: boolean;
+  frequency: 'daily' | 'weekly' | 'real-time';
+  lastRun?: string;
 }
 
 export interface UserPreferences {
@@ -35,6 +50,8 @@ export interface UserPreferences {
   focusMode: 'work' | 'personal' | 'study' | 'none';
   lastActiveNoteId?: string;
   sidebarCollapsed: boolean;
+  agents?: AgentConfig[];
+  workspaceLayout?: any; // For custom dashboards
 }
 
 export interface ChatMessage {
@@ -49,4 +66,5 @@ export interface Presence {
   userPhoto?: string;
   lastActive: string;
   activeNoteId?: string;
+  location?: { lat: number; lng: number };
 }

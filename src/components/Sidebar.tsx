@@ -17,7 +17,8 @@ import {
   Target,
   Briefcase,
   User as UserIcon,
-  BookOpen
+  BookOpen,
+  Clock
 } from 'lucide-react';
 import { motion } from 'motion/react';
 import { useNoteStore, useUserStore } from '../store/useNoteStore';
@@ -29,9 +30,19 @@ interface SidebarProps {
   onOpenGraph: () => void;
   onOpenKanban: () => void;
   onOpenSmartCapture: () => void;
+  onOpenTimeline: () => void;
+  onOpenWorkspace: () => void;
 }
 
-export function Sidebar({ user, onLogout, onOpenGraph, onOpenKanban, onOpenSmartCapture }: SidebarProps) {
+export function Sidebar({ 
+  user, 
+  onLogout, 
+  onOpenGraph, 
+  onOpenKanban, 
+  onOpenSmartCapture,
+  onOpenTimeline,
+  onOpenWorkspace
+}: SidebarProps) {
   const { addNote, setSelectedNoteId } = useNoteStore();
   const { preferences, updatePreferences } = useUserStore();
 
@@ -74,10 +85,17 @@ export function Sidebar({ user, onLogout, onOpenGraph, onOpenKanban, onOpenSmart
       <div className="space-y-1 mb-6">
         <p className="px-3 text-[10px] font-bold text-zinc-600 uppercase tracking-widest mb-2">Módulos IA</p>
         <button 
+          onClick={onOpenWorkspace}
+          className="flex items-center space-x-3 w-full px-3 py-2 rounded-xl text-zinc-400 hover:text-white hover:bg-zinc-900 transition-all group"
+        >
+          <LayoutGrid className="w-4 h-4 text-indigo-500" />
+          <span className="text-sm font-medium">Workspace</span>
+        </button>
+        <button 
           onClick={onOpenSmartCapture}
           className="flex items-center space-x-3 w-full px-3 py-2 rounded-xl text-zinc-400 hover:text-white hover:bg-zinc-900 transition-all group"
         >
-          <Upload className="w-4 h-4 text-indigo-500" />
+          <Upload className="w-4 h-4 text-pink-500" />
           <span className="text-sm font-medium">Smart Capture</span>
         </button>
         <button 
@@ -86,6 +104,13 @@ export function Sidebar({ user, onLogout, onOpenGraph, onOpenKanban, onOpenSmart
         >
           <Network className="w-4 h-4 text-blue-500" />
           <span className="text-sm font-medium">Second Brain</span>
+        </button>
+        <button 
+          onClick={onOpenTimeline}
+          className="flex items-center space-x-3 w-full px-3 py-2 rounded-xl text-zinc-400 hover:text-white hover:bg-zinc-900 transition-all group"
+        >
+          <Clock className="w-4 h-4 text-orange-500" />
+          <span className="text-sm font-medium">Timeline</span>
         </button>
         <button 
           onClick={onOpenKanban}

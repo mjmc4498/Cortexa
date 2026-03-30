@@ -1,4 +1,4 @@
-import { Search, Star, Pin, Tag, Clock, Sparkles, Target, Zap } from 'lucide-react';
+import { Search, Star, Pin, Tag, Clock, Sparkles, Target, Zap, BrainCircuit } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { useNoteStore, useUserStore } from '../store/useNoteStore';
 import { cn } from '../lib/utils';
@@ -6,11 +6,24 @@ import { formatDistanceToNow } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { generatePredictiveSuggestions } from '../services/aiService';
 import { useEffect, useState } from 'react';
+import { Note } from '../types';
 
 export function NoteList() {
-  const { notes, searchQuery, setSearchQuery, selectedNoteId, setSelectedNoteId, loading } = useNoteStore();
+  const { 
+    notes, 
+    searchQuery, 
+    setSearchQuery, 
+    selectedNoteId, 
+    setSelectedNoteId, 
+    loading,
+    isSemanticSearch,
+    setSemanticSearch,
+    performSemanticSearch
+  } = useNoteStore();
   const { preferences } = useUserStore();
   const [suggestions, setSuggestions] = useState<string[]>([]);
+  const [semanticResults, setSemanticResults] = useState<Note[]>([]);
+  const [searchingSemantic, setSearchingSemantic] = useState(false);
 
   useEffect(() => {
     if (notes.length > 0 && preferences?.focusMode) {
@@ -23,34 +36,67 @@ export function NoteList() {
     }
   }, [notes, preferences?.focusMode]);
 
-  const filteredNotes = notes.filter(note => {
-    const matchesSearch = 
-      note.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      note.content.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      note.tags.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase()));
-    
-    const matchesFocus = 
-      !preferences?.focusMode || 
-      preferences.focusMode === 'none' || 
-      note.category === preferences.focusMode || 
-      note.tags.includes(preferences.focusMode);
+  useEffect(() => {
+    const doSemanticSearch = async () => {
+      if (isSemanticSearch && searchQuery.length > 3) {
+        setSearchingSemantic(true);
+        const results = await performSemanticSearch(searchQuery);
+        setSemanticResults(results);
+        setSearchingSemantic(false);
+      } else {
+        setSemanticResults([]);
+      }
+    };
+    const timer = setTimeout(doSemanticSearch, 500);
+    return () => clearTimeout(timer);
+  }, [searchQuery, isSemanticSearch]);
 
-    return matchesSearch && matchesFocus;
-  });
+  const filteredNotes = isSemanticSearch && searchQuery.length > 3
+    ? semanticResults
+    : notes.filter(note => {
+        const matchesSearch = 
+          note.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          note.content.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          note.tags.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase()));
+        
+        const matchesFocus = 
+          !preferences?.focusMode || 
+          preferences.focusMode === 'none' || 
+          note.category === preferences.focusMode || 
+          note.tags.includes(preferences.focusMode);
+
+        return matchesSearch && matchesFocus;
+      });
 
   return (
-    <div className="w-80 flex flex-col bg-[#0a0a0a] h-full">
+    <div className="w-80 flex flex-col bg-[#0a0a0a] h-full border-r border-zinc-800">
       <div className="p-4 space-y-4">
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500" />
+        <div className="relative group">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500 group-focus-within:text-orange-500 transition-colors" />
           <input
             type="text"
-            placeholder="Buscar notas..."
+            placeholder={isSemanticSearch ? "Búsqueda semántica (IA)..." : "Buscar notas..."}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full bg-zinc-900 border-none rounded-xl py-2.5 pl-10 pr-4 text-sm text-white placeholder:text-zinc-600 focus:ring-2 focus:ring-orange-500/50 transition-all"
+            className="w-full bg-zinc-900 border-none rounded-xl py-2.5 pl-10 pr-10 text-sm text-white placeholder:text-zinc-600 focus:ring-2 focus:ring-orange-500/50 transition-all"
           />
+          <button 
+            onClick={() => setSemanticSearch(!isSemanticSearch)}
+            className={cn(
+              "absolute right-2 top-1/2 -translate-y-1/2 p-1.5 rounded-lg transition-all",
+              isSemanticSearch ? "bg-orange-500 text-white" : "text-zinc-500 hover:bg-zinc-800"
+            )}
+            title="Búsqueda Semántica (IA)"
+          >
+            <BrainCircuit size={14} />
+          </button>
         </div>
+
+        {searchingSemantic && (
+          <div className="px-1 py-1 text-[10px] text-orange-500 font-mono animate-pulse flex items-center gap-2">
+            <BrainCircuit size={12} /> Analizando significado...
+          </div>
+        )}
 
         {/* Predictive Suggestions */}
         <AnimatePresence>

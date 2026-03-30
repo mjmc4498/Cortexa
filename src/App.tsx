@@ -9,6 +9,8 @@ import { AIAssistant } from './components/AIAssistant';
 import { GraphView } from './components/GraphView';
 import { KanbanView } from './components/KanbanView';
 import { SmartCapture } from './components/SmartCapture';
+import { TimelineView } from './components/TimelineView';
+import { WorkspaceView } from './components/WorkspaceView';
 import { LogIn, Loader2, Sparkles } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 
@@ -21,6 +23,8 @@ export default function App() {
   const [showGraph, setShowGraph] = useState(false);
   const [showKanban, setShowKanban] = useState(false);
   const [showSmartCapture, setShowSmartCapture] = useState(false);
+  const [showTimeline, setShowTimeline] = useState(false);
+  const [showWorkspace, setShowWorkspace] = useState(false);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
@@ -112,6 +116,8 @@ export default function App() {
         onOpenGraph={() => setShowGraph(true)}
         onOpenKanban={() => setShowKanban(true)}
         onOpenSmartCapture={() => setShowSmartCapture(true)}
+        onOpenTimeline={() => setShowTimeline(true)}
+        onOpenWorkspace={() => setShowWorkspace(true)}
       />
       
       <main className="flex-1 flex overflow-hidden relative">
@@ -145,6 +151,8 @@ export default function App() {
         {showGraph && <GraphView onClose={() => setShowGraph(false)} />}
         {showKanban && <KanbanView onClose={() => setShowKanban(false)} />}
         {showSmartCapture && <SmartCapture onClose={() => setShowSmartCapture(false)} />}
+        {showTimeline && <TimelineView onClose={() => setShowTimeline(false)} />}
+        {showWorkspace && <WorkspaceView onClose={() => setShowWorkspace(false)} />}
       </AnimatePresence>
     </div>
   );

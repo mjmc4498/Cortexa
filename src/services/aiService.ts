@@ -159,3 +159,80 @@ export const generatePredictiveSuggestions = async (userContext: string, notes: 
     return [];
   }
 };
+
+export const generateEmbedding = async (text: string): Promise<number[]> => {
+  try {
+    const result = await ai.models.embedContent({
+      model: "gemini-embedding-2-preview",
+      contents: [text],
+    });
+    return result.embeddings[0].values;
+  } catch (error) {
+    console.error("Error generating embedding:", error);
+    return [];
+  }
+};
+
+export const calculateCosineSimilarity = (vecA: number[], vecB: number[]): number => {
+  if (!vecA.length || !vecB.length) return 0;
+  let dotProduct = 0;
+  let normA = 0;
+  let normB = 0;
+  for (let i = 0; i < vecA.length; i++) {
+    dotProduct += vecA[i] * vecB[i];
+    normA += vecA[i] * vecA[i];
+    normB += vecB[i] * vecB[i];
+  }
+  return dotProduct / (Math.sqrt(normA) * Math.sqrt(normB));
+};
+
+export const semanticSearch = async (query: string, notes: Note[]): Promise<Note[]> => {
+  const queryEmbedding = await generateEmbedding(query);
+  if (!queryEmbedding.length) return [];
+
+  const scoredNotes = notes
+    .filter(n => n.embedding && n.embedding.length > 0)
+    .map(n => ({
+      note: n,
+      score: calculateCosineSimilarity(queryEmbedding, n.embedding!)
+    }))
+    .sort((a, b) => b.score - a.score);
+
+  return scoredNotes.filter(n => n.score > 0.6).map(n => n.note);
+};
+
+export const generateWeeklyReport = async (notes: Note[]): Promise<string> => {
+  try {
+    const weekAgo = new Date();
+    weekAgo.setDate(weekAgo.getDate() - 7);
+    const recentNotes = notes.filter(n => new Date(n.updatedAt) > weekAgo);
+    
+    if (recentNotes.length === 0) return "No se encontraron notas recientes para generar un reporte.";
+
+    const context = recentNotes.map(n => `- ${n.title}: ${n.summary || n.content.substring(0, 50)}`).join("\n");
+    
+    const response = await ai.models.generateContent({
+      model: "gemini-3-flash-preview",
+      contents: `Genera un reporte semanal de productividad y temas clave basado en las siguientes notas del usuario:\n\n${context}\n\nEl reporte debe incluir:\n1. Resumen de actividades.\n2. Temas recurrentes.\n3. Sugerencias para la próxima semana.\n4. Insights sobre el progreso del conocimiento.`,
+    });
+    return response.text || "Error al generar el reporte.";
+  } catch (error) {
+    console.error("Error generating weekly report:", error);
+    return "Error al generar el reporte semanal.";
+  }
+};
+
+export const detectContextualNotes = async (location: string, time: string, calendar: string, notes: Note[]): Promise<Note[]> => {
+  try {
+    const context = notes.map(n => `ID: ${n.id}, Título: ${n.title}, Etiquetas: ${n.tags.join(",")}`).join("\n");
+    const response = await ai.models.generateContent({
+      model: "gemini-3-flash-preview",
+      contents: `Basándote en el contexto actual del usuario:\n- Ubicación: ${location}\n- Hora: ${time}\n- Calendario: ${calendar}\n\nSelecciona hasta 3 notas de la siguiente lista que sean más relevantes para este momento. Devuelve ÚNICAMENTE una lista de IDs separados por comas.\n\nNotas:\n${context}`,
+    });
+    const ids = (response.text || "").split(",").map(id => id.trim());
+    return notes.filter(n => ids.includes(n.id));
+  } catch (error) {
+    console.error("Error detecting contextual notes:", error);
+    return [];
+  }
+};
